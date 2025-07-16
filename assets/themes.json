@@ -1,0 +1,47 @@
+{
+    "@Name": {
+        "font": {
+            "name": "arial",
+            "size": 70,
+            "bold":true
+        },
+        "colours": {
+            "normal_text": "#FFD700"
+        }
+    },
+    "#custom_button": {
+        "colours": {
+            "normal_bg": "#00000080",
+            "hovered_bg": "#FFD369",
+            "disabled_bg": "#555555",
+            "normal_text": "#FFD369",
+            "hovered_text": "#EEEEEE"
+        },
+        "misc":{
+            "border_width": "0"
+        }
+    },
+    "#labels":{
+"colours": {
+            "normal_bg": "#00000000",
+            "hovered_bg": "#00000000",
+            "disabled_bg": "#555555",
+            "normal_text": "#FFD369",
+            "hovered_text": "#EEEEEE"
+        },
+        "misc":{
+            "border_width": "0"
+        }
+    },
+    "#bot_square": {
+        "images": {
+            "normal": "assets/images/bots/chatgpt.png",
+            "hovered": "assets/images/bots/chatgpt.png",
+            "pressed": "assets/images/bots/chatgpt.png"
+        },
+        "colours": {
+            "normal_bg": "#00000000",  
+            "hovered_bg": "#00000000"
+        }
+    }
+}

@@ -1,6 +1,8 @@
 import pygame
 import pygame_gui
-from HomeScreen import Main
+from HomeScreen import Main, text_surface
+from config.ui import MARGIN
+from config.general import WINDOW_NAME
 
 
 pygame.init()
@@ -8,16 +10,21 @@ pygame.init()
 # Window setup
 WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("test")
+pygame.display.set_caption(WINDOW_NAME)
 
-# GUI Manager
-manager = pygame_gui.UIManager((WIDTH, HEIGHT))
+background = pygame.image.load("assets/images/general/background.jpg").convert()
+background = pygame.transform.scale(background, (800, 600))
 
-# HomeScreen instance (Independent of game engine!)
+
+manager = pygame_gui.UIManager((WIDTH, HEIGHT), r"D:\ChamberOfDoubts\assets\themes.json")
 HomeScreen = Main(manager, WIDTH, HEIGHT)
 
 clock = pygame.time.Clock()
 running = True
+
+
+
+
 
 while running:
     time_delta = clock.tick(60) / 1000.0
@@ -26,6 +33,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         HomeScreen.detectModes(event)
+        HomeScreen.detectInput(event)
         # HomeScreen.handle_event(event)
         manager.process_events(event)
 
@@ -33,7 +41,8 @@ while running:
 
     window.fill((30, 30, 30))  # Dark background
     # HomeScreen.draw(window)
-
+    window.blit(background, (0, 0))
+    window.blit(text_surface, (MARGIN, 350))
     manager.draw_ui(window)
     pygame.display.flip()
 

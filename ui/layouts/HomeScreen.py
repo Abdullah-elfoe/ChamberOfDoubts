@@ -10,6 +10,10 @@ path.append(abspath(join(dirname(__file__), '../../')))
 
 from config import general, ui
 
+pygame.font.init()
+font = pygame.font.SysFont("Comic sams ms", 50)
+text_surface = font.render(general.WINDOW_NAME, True, (200, 112, 9)) 
+
 
 
 class Main:
@@ -18,15 +22,39 @@ class Main:
         self.showModes(*ui.MODES)
         self.bots_buttons = []
         self.input_fields = []
+        self.__handleBots()
+
+                # === Main Menu Elements ===
+      
+        lines = [
+            "The gun's weight tells you nothing only fate decides ",
+            "If the next shell is your last laugh or last breath",
+            "Two players. One survivor. The game isn't rigged it's just cruel"
+                ]
+        for i, line in enumerate(lines):
+            pygame_gui.elements.UILabel(
+                relative_rect=pygame.Rect((3+ui.MARGIN, 400+(i*ui.LINEHEIGHT)), (-1, -1)),
+                text=line,
+                manager=manager
+                    )
+
+
+        self.play_button = pygame_gui.elements.UIButton(
+            pygame.Rect((ui.MARGIN, 490), (120, 50)),
+            "Play",
+            manager=manager,
+            object_id="#custom_button"
+        )
+
 
 
     def showModes(self, *names):
         for index, name in enumerate(names):
             self.bots_button = pygame_gui.elements.UIButton(
-                pygame.Rect((ui.MARGIN+(index*ui.BOTSBUTTONWIDTH), ui.MARGIN), (ui.BOTSBUTTONWIDTH, ui.BOTSBUTTONHEIGHT)),
+                pygame.Rect((ui.MARGIN+5+(index*120), ui.MARGIN), (-1, ui.BOTSBUTTONHEIGHT)),
                 manager=self.manager,
                 text=name,
-                object_id = "#modes",
+                object_id = "#labels",
                 
                 )
         
@@ -69,8 +97,13 @@ class Main:
                         current_pos = self.bots_buttons[j].get_relative_rect().topleft
                         new_pos = (current_pos[0] - ui.SHIFT_AMOUNT, current_pos[1])
                         self.bots_buttons[j].set_relative_position(new_pos)
-                   
 
+
+    def detectInput(self, event):
+        if event.type == pygame_gui.UI_BUTTON_PRESSED:
+            text = event.ui_element.text
+            if text == "Play":
+                self.handlePlay()
 
 
     def __handleBots(self):
@@ -94,25 +127,27 @@ class Main:
         # Remove existing UI elements first
         self.__clear_ui()
 
-        name_entry = pygame_gui.elements.UITextEntryLine(
+        ip_entry = pygame_gui.elements.UITextEntryLine(
             pygame.Rect((ui.MARGIN, ui.MARGIN + 100), (ui.BOTSBUTTONWIDTH*len(ui.MODES), 35)),
             manager=self.manager
         )
 
-        ip_entry = pygame_gui.elements.UITextEntryLine(
+        port_entry = pygame_gui.elements.UITextEntryLine(
             pygame.Rect((ui.MARGIN, ui.MARGIN + 140), (ui.BOTSBUTTONWIDTH*len(ui.MODES), 35)),
             manager=self.manager
         )
-        ip_entry.set_text("127.0.0.1")
 
-        port_entry = pygame_gui.elements.UITextEntryLine(
+        palip_entry = pygame_gui.elements.UITextEntryLine(
             pygame.Rect((ui.MARGIN, ui.MARGIN + 180), (ui.BOTSBUTTONWIDTH*len(ui.MODES), 35)),
             manager=self.manager
         )
-        
-        port_entry.set_text("5555")
 
-        self.input_fields.extend([name_entry, ip_entry, port_entry])
+        
+        ip_entry.set_text(self.ipAdress)
+        port_entry.set_text(f"{self.emptyPort}")
+        
+
+        self.input_fields.extend([palip_entry, ip_entry, port_entry])
 
     def __clear_ui(self):
         # Destroy previous squares or input fields when switching modes
@@ -123,6 +158,40 @@ class Main:
         for entry in self.input_fields:
             entry.kill()
         self.input_fields.clear()
+
+
+    def handlePlay(self):
+        if len(self.bots_buttons) != 0 and len(self.input_fields) == 0:
+            print("Hold Tight Match making")
+        else:
+            print(self.input_fields[0].get_text())
+            dialog = pygame_gui.windows.UIConfirmationDialog(
+                rect=pygame.Rect((200, 150), (300, 150)),
+                manager=self.manager,
+                window_title="Connection Request",
+                action_long_desc="ip flana wants to play with you",
+                action_short_name="ok",   # Button text
+                blocking=True
+            )
+    @property      
+    def ipAdress(self):
+        import subprocess
+
+        output = subprocess.getoutput("ipconfig")
+        for line in output.splitlines():
+            if "IPv4" in line:
+                return line.split(":")[1].strip()
+            
+
+    @property
+    def emptyPort(self):
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('', 0))  # Bind to any free port
+        port = s.getsockname()[1]
+        s.close()
+        return port
+            
 
 
 
