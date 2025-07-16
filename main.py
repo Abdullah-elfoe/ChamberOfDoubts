@@ -1,6 +1,6 @@
 import pygame
 import pygame_gui
-from ui.layouts.menu import MainMenu
+from ui.layouts.HomeScreen import MainMenu
 from config import general
 
 pygame.init()

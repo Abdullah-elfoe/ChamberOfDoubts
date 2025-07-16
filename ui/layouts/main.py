@@ -1,25 +1,23 @@
 import pygame
 import pygame_gui
-from menu import MainMenu
-from scripts.game_engine import GameEngine
+from HomeScreen import Main
+
 
 pygame.init()
 
 # Window setup
 WIDTH, HEIGHT = 800, 600
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Chamber of Doubts")
+pygame.display.set_caption("test")
 
 # GUI Manager
 manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 
-# Game State
-menu = MainMenu(manager, WIDTH, HEIGHT)
-game = GameEngine()
+# HomeScreen instance (Independent of game engine!)
+HomeScreen = Main(manager, WIDTH, HEIGHT)
 
 clock = pygame.time.Clock()
 running = True
-in_game = False
 
 while running:
     time_delta = clock.tick(60) / 1000.0
@@ -27,25 +25,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-
-        if in_game:
-            game.handle_event(event)
-        else:
-            menu.handle_event(event)
-
+        HomeScreen.detectModes(event)
+        # HomeScreen.handle_event(event)
         manager.process_events(event)
 
-    if in_game:
-        game.update(time_delta)
-    else:
-        menu.update(time_delta)
+    HomeScreen.update(time_delta)
 
-    window.fill((0, 0, 0))
-
-    if in_game:
-        game.draw(window)
-    else:
-        menu.draw(window)
+    window.fill((30, 30, 30))  # Dark background
+    # HomeScreen.draw(window)
 
     manager.draw_ui(window)
     pygame.display.flip()
