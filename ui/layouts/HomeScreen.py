@@ -9,6 +9,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 from config import general, ui
+from game_engine.Networking.node import P2PServer
 
 pygame.font.init()
 font = pygame.font.SysFont("Comic sams ms", 50)
@@ -22,6 +23,8 @@ class Main:
         self.showModes(*ui.MODES)
         self.bots_buttons = []
         self.input_fields = []
+        self.connect_button = object
+        self.server = P2PServer()
         self.__handleBots()
 
                 # === Main Menu Elements ===
@@ -70,6 +73,12 @@ class Main:
                 self.__handleBots()
             elif button_text == ui.MODES[1]:
                 self.__handleMultiplayer()
+            if event.ui_element == self.connect_button:
+                ip = self.ip_input.get_text()
+                port = self.port_input.get_text()
+                print(f"Connect to {ip}:{port}")
+                self.server.setup(ip=self.input_fields[0], port=int(port), target_ip=ip)
+                self.popup.kill()
 
         elif event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
             for index, square in enumerate(self.bots_buttons):
@@ -147,7 +156,7 @@ class Main:
         port_entry.set_text(f"{self.emptyPort}")
         
 
-        self.input_fields.extend([palip_entry, ip_entry, port_entry])
+        self.input_fields.extend([ip_entry, port_entry, palip_entry])
 
     def __clear_ui(self):
         # Destroy previous squares or input fields when switching modes
@@ -164,15 +173,9 @@ class Main:
         if len(self.bots_buttons) != 0 and len(self.input_fields) == 0:
             print("Hold Tight Match making")
         else:
-            print(self.input_fields[0].get_text())
-            dialog = pygame_gui.windows.UIConfirmationDialog(
-                rect=pygame.Rect((200, 150), (300, 150)),
-                manager=self.manager,
-                window_title="Connection Request",
-                action_long_desc="ip flana wants to play with you",
-                action_short_name="ok",   # Button text
-                blocking=True
-            )
+            print(self.input_fields[-1].get_text())
+            self.server.is_host = False
+            self.create_connection_popup(self.manager)
     @property      
     def ipAdress(self):
         import subprocess
@@ -191,6 +194,38 @@ class Main:
         port = s.getsockname()[1]
         s.close()
         return port
+    
+    def create_connection_popup(self, manager):
+        self.popup = pygame_gui.elements.UIWindow(
+            pygame.Rect((300, 200), (350, 200)),
+            manager=manager,
+            window_display_title="Connect to Host"  # ✅ Correct parameter
+        )
+
+        self.ip_input = pygame_gui.elements.UITextEntryLine(
+            relative_rect=pygame.Rect((20, 40), (300, 30)),
+            manager=manager,
+            container=self.popup
+        )
+        self.ip_input.set_text("Enter IP Address")
+
+        self.port_input = pygame_gui.elements.UITextEntryLine(
+            relative_rect=pygame.Rect((20, 80), (300, 30)),
+            manager=manager,
+            container=self.popup
+        )
+        self.port_input.set_text("Enter Port")
+
+        self.connect_button = pygame_gui.elements.UIButton(
+            relative_rect=pygame.Rect((100, 130), (150, 40)),
+            text="Connect",
+            manager=manager,
+            container=self.popup
+        )
+
+        return self.popup, self.ip_input, self.port_input, self.connect_button
+
+
             
 
 
