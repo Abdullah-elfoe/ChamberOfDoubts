@@ -25,7 +25,8 @@ class Main:
         self.input_fields = []
         self.connect_button = object
         self.network = P2PNode()
-        self.network.start_server(ip=self.ipAdress, port=self.emptyPort)
+        self.emptyport = self.emptyPort
+        self.network.start_server(ip=self.ipAdress, port=self.emptyport)
         self.__handleBots()
 
                 # === Main Menu Elements ===
@@ -79,7 +80,7 @@ class Main:
                 port = int(self.port_input.get_text())
                 self.network.connect_to_peer(ip, port=port)
                 print(f"Connecting to {ip}:{port}")
-                self.popup.kill()
+                # self.popup.kill()
                 self.network.send("Hello, I am connecting!")
 
 
@@ -157,7 +158,7 @@ class Main:
 
         
         ip_entry.set_text(self.ipAdress)
-        port_entry.set_text(f"{self.emptyPort}")
+        port_entry.set_text(f"{self.emptyport}")
         
 
         self.input_fields.extend([ip_entry, port_entry, palip_entry])
