@@ -25,6 +25,7 @@ class Main:
         self.input_fields = []
         self.connect_button = object
         self.server = P2PServer()
+        self.server.setup(ip=self.ipAdress)
         self.__handleBots()
 
                 # === Main Menu Elements ===
@@ -76,8 +77,8 @@ class Main:
             if event.ui_element == self.connect_button:
                 ip = self.ip_input.get_text()
                 port = self.port_input.get_text()
+                self.server.setup(ip=self.input_fields[0], port=5555, target_ip=ip)
                 print(f"Connect to {ip}:{port}")
-                self.server.setup(ip=self.input_fields[0], port=int(port), target_ip=ip)
                 self.popup.kill()
                 self.server.send("Hi I wanna connect?")
 
@@ -177,6 +178,7 @@ class Main:
             print(self.input_fields[-1].get_text())
             self.server.is_host = False
             self.create_connection_popup(self.manager)
+            
     @property      
     def ipAdress(self):
         import subprocess
