@@ -53,10 +53,14 @@ def main():
     role = input("Are you host or client? (h/c): ").lower()
 
     if role == 'h':
-        chat = P2PServer(is_host=True, port=5555)
+        chat = P2PServer()
+        chat.is_host = True
+        chat.setup()
     else:
         target_ip = input("Enter host IP: ")
-        chat = P2PServer(is_host=False, port=5555, target_ip=target_ip)
+        chat = P2PServer()
+        chat.is_host = False
+        chat.setup(target_ip=target_ip)
 
     # Chat loop
     while chat.running:

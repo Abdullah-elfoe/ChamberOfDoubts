@@ -79,6 +79,7 @@ class Main:
                 print(f"Connect to {ip}:{port}")
                 self.server.setup(ip=self.input_fields[0], port=int(port), target_ip=ip)
                 self.popup.kill()
+                self.server.send("Hi I wanna connect?")
 
         elif event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
             for index, square in enumerate(self.bots_buttons):
