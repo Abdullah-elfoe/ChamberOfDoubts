@@ -9,7 +9,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 from config import general, ui
-from game_engine.Networking.node import P2PServer
+from game_engine.Networking.node import P2PNode
 
 pygame.font.init()
 font = pygame.font.SysFont("Comic sams ms", 50)
@@ -24,8 +24,8 @@ class Main:
         self.bots_buttons = []
         self.input_fields = []
         self.connect_button = object
-        self.server = P2PServer()
-        self.server.setup(ip=self.ipAdress)
+        self.network = P2PNode()
+        self.network.start_server(ip=self.ipAdress, port=self.emptyPort)
         self.__handleBots()
 
                 # === Main Menu Elements ===
@@ -76,11 +76,13 @@ class Main:
                 self.__handleMultiplayer()
             if event.ui_element == self.connect_button:
                 ip = self.ip_input.get_text()
-                port = self.port_input.get_text()
-                self.server.setup(ip=self.input_fields[0], port=5555, target_ip=ip)
-                print(f"Connect to {ip}:{port}")
+                port = int(self.port_input.get_text())
+                self.network.connect_to_peer(ip, port=port)
+                print(f"Connecting to {ip}:{port}")
                 self.popup.kill()
-                self.server.send("Hi I wanna connect?")
+                self.network.send("Hello, I am connecting!")
+
+
 
         elif event.type == pygame_gui.UI_BUTTON_ON_HOVERED:
             for index, square in enumerate(self.bots_buttons):
@@ -175,8 +177,8 @@ class Main:
         if len(self.bots_buttons) != 0 and len(self.input_fields) == 0:
             print("Hold Tight Match making")
         else:
-            print(self.input_fields[-1].get_text())
-            self.server.is_host = False
+            # print(self.input_fields[-1].get_text())
+        
             self.create_connection_popup(self.manager)
             
     @property      

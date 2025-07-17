@@ -1,35 +1,43 @@
 import socket
 import threading
 
-class P2PServer:
+class P2PNode:
     def __init__(self):
-        self.is_host = True
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn = None
         self.running = True
-        
-    def setup(self, ip="0.0.0.0", port=5555, target_ip=None):
-        if self.is_host:
-            # Host: Listen for connection
-            self.sock.bind((ip, port))
-            self.sock.listen(1)
-            print(f"[HOST] Waiting for connection on {ip}:{port}...")
-            self.conn, addr = self.sock.accept()
-            print(f"[HOST] Connected with {addr}")
-        else:
-            # Client: Connect to host
-            self.sock.connect((target_ip, port))
-            self.conn = self.sock
-            print(f"[CLIENT] Connected to {target_ip}:{port}")
 
-        # Start receive thread
+    def start_server(self, ip="0.0.0.0", port=5555):
+        # Start listening in a new thread
+        self.sock.bind((ip, port))
+        self.sock.listen(1)
+        print(f"[P2PNode] Listening for incoming connections on {ip}:{port}...")
+        threading.Thread(target=self._accept_connection, daemon=True).start()
+
+    def _accept_connection(self):
+        self.conn, addr = self.sock.accept()
+        print(f"[P2PNode] Incoming connection from {addr}")
         threading.Thread(target=self.receive_loop, daemon=True).start()
 
-    def send(self, message):
+    def connect_to_peer(self, target_ip, port=5555):
+        # Outgoing connection (client role)
         try:
-            self.conn.sendall(message.encode('utf-8'))
-        except:
-            print("[ERROR] Failed to send message.")
+            client_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_sock.connect((target_ip, port))
+            self.conn = client_sock
+            print(f"[P2PNode] Connected to peer at {target_ip}:{port}")
+            threading.Thread(target=self.receive_loop, daemon=True).start()
+        except Exception as e:
+            print(f"[ERROR] Failed to connect to peer: {e}")
+
+    def send(self, message):
+        if self.conn:
+            try:
+                self.conn.sendall(message.encode('utf-8'))
+            except Exception as e:
+                print(f"[ERROR] Failed to send message: {e}")
+        else:
+            print("[WARN] No connection established yet.")
 
     def receive_loop(self):
         while self.running:
@@ -45,33 +53,34 @@ class P2PServer:
 
     def close(self):
         self.running = False
-        self.conn.close()
+        if self.conn:
+            self.conn.close()
         self.sock.close()
 
 # === Usage ===
 def main():
-    role = input("Are you host or client? (h/c): ").lower()
+    node = P2PNode()
+    port = 5555
 
-    if role == 'h':
-        chat = P2PServer()
-        chat.is_host = True
-        chat.setup()
-    else:
-        target_ip = input("Enter host IP: ")
-        chat = P2PServer()
-        chat.is_host = False
-        chat.setup(target_ip=target_ip)
+    # Always start server to accept connections (P2P behavior)
+    node.start_server(port=port)
+
+    # Optionally connect to a peer
+    choice = input("Do you want to connect to a peer? (y/n): ").lower()
+    if choice == 'y':
+        target_ip = input("Enter peer IP: ")
+        node.connect_to_peer(target_ip, port=port)
 
     # Chat loop
-    while chat.running:
+    while node.running:
         try:
             msg = input("> ")
             if msg.lower() == "exit":
-                chat.close()
+                node.close()
                 break
-            chat.send(msg)
+            node.send(msg)
         except KeyboardInterrupt:
-            chat.close()
+            node.close()
             break
 
 if __name__ == "__main__":
