@@ -1,6 +1,7 @@
 import pygame
 import pygame_gui
 from HomeScreen import Main, text_surface
+from gametempate import Template
 from config.ui import MARGIN
 from config.general import WINDOW_NAME
 
@@ -17,7 +18,8 @@ background = pygame.transform.scale(background, (800, 600))
 
 
 manager = pygame_gui.UIManager((WIDTH, HEIGHT), r"D:\ChamberOfDoubts\assets\themes.json")
-HomeScreen = Main(manager, WIDTH, HEIGHT)
+HomeScreen = Main(manager)
+# game = Template(manager)
 
 clock = pygame.time.Clock()
 running = True
@@ -42,7 +44,8 @@ while running:
     window.fill((30, 30, 30))  # Dark background
     # HomeScreen.draw(window)
     window.blit(background, (0, 0))
-    window.blit(text_surface, (MARGIN, 350))
+    if not HomeScreen.terminated:
+        window.blit(text_surface, (MARGIN, 350))
     manager.draw_ui(window)
     pygame.display.flip()
 

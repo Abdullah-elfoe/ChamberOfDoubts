@@ -18,7 +18,9 @@ text_surface = font.render(general.WINDOW_NAME, True, (200, 112, 9))
 
 
 class Main:
-    def __init__(self, manager, width, height):
+    def __init__(self, manager):
+        self.uiComponentList = []
+        self.terminated = False
         self.manager = manager
         self.showModes(*ui.MODES)
         self.bots_buttons = []
@@ -37,11 +39,12 @@ class Main:
             "Two players. One survivor. The game isn't rigged it's just cruel"
                 ]
         for i, line in enumerate(lines):
-            pygame_gui.elements.UILabel(
+            temp = pygame_gui.elements.UILabel(
                 relative_rect=pygame.Rect((3+ui.MARGIN, 400+(i*ui.LINEHEIGHT)), (-1, -1)),
                 text=line,
                 manager=manager
                     )
+            self.uiComponentList.append(temp)
 
 
         self.play_button = pygame_gui.elements.UIButton(
@@ -52,16 +55,17 @@ class Main:
         )
 
 
-
     def showModes(self, *names):
         for index, name in enumerate(names):
             self.bots_button = pygame_gui.elements.UIButton(
                 pygame.Rect((ui.MARGIN+5+(index*120), ui.MARGIN), (-1, ui.BOTSBUTTONHEIGHT)),
                 manager=self.manager,
                 text=name,
-                object_id = "#labels",
-                
+                object_id = "#labels",                
                 )
+            self.uiComponentList.append(self.bots_button)
+ 
+            
         
     def update(self, timeDelta):
         self.manager.update(timeDelta)
@@ -177,6 +181,8 @@ class Main:
     def handlePlay(self):
         if len(self.bots_buttons) != 0 and len(self.input_fields) == 0:
             print("Hold Tight Match making")
+
+            self.terminate()
         else:
             # print(self.input_fields[-1].get_text())
         
@@ -230,6 +236,17 @@ class Main:
         )
 
         return self.popup, self.ip_input, self.port_input, self.connect_button
+    
+    def terminate(self):
+        for element in self.uiComponentList:
+            element.kill()
+        self.play_button.kill()
+        for element in self.input_fields:
+            element.kills()
+        for button in self.bots_buttons:
+            button.kill()
+        self.uiComponentList.clear()
+        self.terminated = True
 
 
             
