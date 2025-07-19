@@ -1,23 +1,22 @@
 import pygame
 import pygame_gui
 from HomeScreen import Main, text_surface
-from gametempate import Template
+from ui.layouts.gametemplate import Template
 from config.ui import MARGIN
-from config.general import WINDOW_NAME
+from config.general import WINDOW_NAME, WINDOW_HEIGHT, WINDOW_WIDTH
 
 
 pygame.init()
 
 # Window setup
-WIDTH, HEIGHT = 800, 600
-window = pygame.display.set_mode((WIDTH, HEIGHT))
+window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 pygame.display.set_caption(WINDOW_NAME)
 
 background = pygame.image.load("assets/images/general/background.jpg").convert()
 background = pygame.transform.scale(background, (800, 600))
 
 
-manager = pygame_gui.UIManager((WIDTH, HEIGHT), r"D:\ChamberOfDoubts\assets\themes.json")
+manager = pygame_gui.UIManager((WINDOW_WIDTH, WINDOW_HEIGHT), r"D:\ChamberOfDoubts\assets\themes.json")
 HomeScreen = Main(manager)
 # game = Template(manager)
 

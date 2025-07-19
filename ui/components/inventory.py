@@ -1,7 +1,7 @@
 """ Reseting the root diretory manually"""
 from sys import path
 from os.path import abspath, dirname, join
-path.append(abspath(join(dirname(__file__), '../')))
+path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 from config import game, general, ui
@@ -196,8 +196,8 @@ class SqaureInventory(Inventory):
     def __init__(self, topLeft):
         super().__init__()
         self.x, self.y = topLeft
-        self.width = 65
-        self.Height = 65
+        self.width = general.SQUAREINVENTORY_CONTAINER_WIDTH
+        self.Height = general.SQUAREINVENTORY_CONTAINER_HEIGHT
         self.num_slots = game.TOTAL_ITEMS
 
         for i in range(self.num_slots):

@@ -9,5 +9,5 @@ path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 from config import general, ui
-from gametempate import Template
+from ui.layouts.gametemplate import Template
 

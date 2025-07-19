@@ -10,7 +10,7 @@ LINEHEIGHT = 20
 SUBWINDOWWIDTH = 300
 SUBWINDOWHEIGHT = 300
 
-MODES = ["Computers","Multiplayer"]
+MODES = ["Computers","Multiplayer", "MOYEMOYUE"]
 BOTS = ["Chatgpt", "Bloom", "Torrus"]
 
 BOTS.extend(["Upcoming" for x in range(3)])
