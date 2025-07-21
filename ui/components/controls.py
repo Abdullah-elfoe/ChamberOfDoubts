@@ -26,6 +26,17 @@ class MiniButton:
     def check_hover(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
 
+    def detect_click(self, mouse_pos, functions ,mouse_pressed=pygame.mouse.get_pressed()):
+        """
+        Detects if the button was clicked.
+        :param mouse_pos: Current mouse (x, y) position.
+        :param mouse_pressed: Mouse button states, e.g. pygame.mouse.get_pressed().
+        :return: True if clicked, False otherwise.
+        """
+        if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
+            for function in functions:
+                function()
+
     def draw(self, surface):
         # Draw as a diamond shape (rotated square)
         half = self.size / 2
@@ -60,7 +71,8 @@ class DiamondPanel:
         half = size / 2
         self.points = [
             (center[0], center[1] - half),  # Top
-            (center[0] + half, center[1]),  # Right
+            (center[0] + half, center[1]),  # Rightpygame.mixer.init()
+
             (center[0], center[1] + half),  # Bottom
             (center[0] - half, center[1])   # Left
         ]
@@ -74,11 +86,12 @@ class DiamondPanel:
             MiniButton("Inventory",(center[0] + offset, center[1]), btn_size),  # Right
             MiniButton("Inventory",(center[0], center[1] + offset), btn_size),  # Bottom
             MiniButton("Inventory",(center[0] - offset, center[1]), btn_size),  # Left
+
         ]
 
 
 
-    def draw(self, surface, mouse_pos):
+    def draw(self, surface, mouse_pos, functions):
         # Draw main diamond
         pygame.draw.polygon(surface, self.color, self.points)
 
@@ -86,6 +99,7 @@ class DiamondPanel:
         for btn in self.buttons:
             btn.draw(surface)
             btn.check_hover(mouse_pos)
+            btn.detect_click(mouse_pos, functions.get(btn.name,[]), pygame.mouse.get_pressed())
 
 
 def main():
@@ -103,7 +117,7 @@ def main():
     )
 
     # Optional: Load images into buttons
-    # icon = pygame.image.load("icon.png").convert_alpha()
+    # icon = pygame.image.ontrolload("icon.png").convert_alpha()
     # for btn in diamond.buttons:
     #     btn.image = icon
 

@@ -5,6 +5,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 import pygame
+from config.sounds import FIRE, MISSSHOT
 
 
 class BaiscAnimation:
@@ -55,39 +56,49 @@ class BaiscAnimation:
 class Gun(BaiscAnimation):
     def __init__(self, pos):
         self.frames = [pygame.image.load(f"assets/images/gun/gun{i}.png").convert_alpha() for i in range(1, 6)]
+        self.frames = [pygame.transform.scale(frame, (int(frame.get_size()[0] * 1.4), int(frame.get_size()[1] * 1.4))) for frame in self.frames]
         super().__init__(self.frames,pos,  frame_duration=3, loop=False)
         self.permission = True
 
     def fire(self):
         if self.permission:
+
             self.play()
 
+    def toggle(self):
+        if self.permission:
+            self.permission = False
+        elif not self.permission:
+            self.permission = True
+    
+    def draw(self, surface):
+        if self.permission:
+            super().draw(surface)
 
-pygame.init()
-screen = pygame.display.set_mode((800, 600))
-clock = pygame.time.Clock()
+if __name__ == "__main__":
+
+    pygame.init()
+    screen = pygame.display.set_mode((800, 600))
+    clock = pygame.time.Clock()
 
 
-# Create gun
-gun = Gun(pos=(400, 300))
+    # Create gun
+    gun = Gun(pos=(400, 300))
 
-# Main loop
-running = True
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+    # Main loop
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
 
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
-                gun.fire()
 
-    gun.update()
+        gun.update()
 
-    screen.fill((30, 30, 30))
-    gun.draw(screen)
+        screen.fill((30, 30, 30))
+        gun.draw(screen)
 
-    pygame.display.flip()
-    clock.tick(60)
+        pygame.display.flip()
+        clock.tick(60)
 
-pygame.quit()
+    pygame.quit()

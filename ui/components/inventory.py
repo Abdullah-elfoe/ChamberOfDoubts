@@ -141,6 +141,7 @@ class Inventory:
         self.inventory = []
 
 
+
     def addToInventory(self, name, qty=1):
         for container in self.inventory:
             if (container.holdingItem is not None) and (container.holdingItem.name == name):
@@ -199,6 +200,7 @@ class SqaureInventory(Inventory):
         self.width = general.SQUAREINVENTORY_CONTAINER_WIDTH
         self.Height = general.SQUAREINVENTORY_CONTAINER_HEIGHT
         self.num_slots = game.TOTAL_ITEMS
+        self.permission = True
 
         for i in range(self.num_slots):
             container = SquareItemContainer((self.x, self.y), self.width, self.Height)
@@ -209,10 +211,16 @@ class SqaureInventory(Inventory):
     def update(self, mouse_pos):
         for container in self.inventory:
             container.check_hover(mouse_pos)
+    
+    def toggle(self):
+        if self.permission:
+            self.permission = False
+        elif not self.permission:
+            self.permission = True
 
     def draw(self, surface):
         for container in self.inventory:
-            if container.holdingItem is not None:
+            if container.holdingItem is not None and self.permission:
                 container.draw(surface)
 
     # def generateCoords(self):
@@ -229,6 +237,7 @@ class CircularInventory(Inventory):
         self.radius = radius
         self.num_slots = game.TOTAL_ITEMS
         self.slot_angle = 360 / self.num_slots
+        self.permission = True
 
         for i in range(self.num_slots):
             self.start_angle = i * self.slot_angle
@@ -241,12 +250,21 @@ class CircularInventory(Inventory):
         for container in self.inventory:
             container.check_hover(mouse_pos)
 
+    def toggle(self):
+        if self.permission:
+            self.permission = False
+        elif not self.permission:
+            self.permission = True
+
     def draw(self, surface):
+        print(self.permission)
         for container in self.inventory:
-            container.draw(surface)
+            if self.permission:
+                container.draw(surface)
 
         # Draw center circle for aesthetics
-        pygame.draw.circle(surface, (30, 30, 30), self.center, int(self.radius * 0.3))
+        if self.permission:
+            pygame.draw.circle(surface, (30, 30, 30), self.center, int(self.radius * 0.3))
 
 
 
