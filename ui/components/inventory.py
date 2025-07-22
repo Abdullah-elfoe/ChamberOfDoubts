@@ -7,11 +7,9 @@ path.append(abspath(join(dirname(__file__), '../../')))
 from config import game, general, ui
 import pygame
 import math
+from scripts.timer import Timer
 
-
-import pygame
-import math
-
+pygame.init()
 class SquareItemContainer:
     def __init__(self, topleft, width, height, color=(100, 100, 100)):
         self.x = topleft[0]
@@ -55,6 +53,13 @@ class SquareItemContainer:
             
             surface.blit(text, text_rect)
 
+    @property
+    def isEmpty(self):
+        if self.holdingItem is None:
+            return True
+        else:
+            return False
+
 
 class CircularItemContainer:
     def __init__(self, center, radius, start_angle_deg, end_angle_deg, color=(100, 100, 100)):
@@ -90,6 +95,21 @@ class CircularItemContainer:
             # Wrap-around case
             self.is_hovered = angle >= self.start_angle_deg or angle < self.end_angle_deg
 
+
+    def detect_click(self, mouse_pos, functions=[], mouse_pressed=pygame.mouse.get_pressed()):
+        """
+        Detects a click using existing check_hover logic and mouse button state.
+        
+        :param mouse_pos: (x, y) mouse position.
+        :param mouse_pressed: result of pygame.mouse.get_pressed()
+        :return: True if hovered and left button clicked, else False.
+        """
+        self.check_hover(mouse_pos)
+        if self.is_hovered and mouse_pressed[0]:
+            for function in functions:
+                function()
+            return True
+        
     def draw(self, surface):
         start_rad = math.radians(self.start_angle_deg)
         end_rad = math.radians(self.end_angle_deg)
@@ -126,6 +146,13 @@ class CircularItemContainer:
             surface.blit(self.holdingItem.image, (self.imageX, self.imageY))
 
             # print(self.holdingItem.image.get_width())
+
+    @property
+    def isEmpty(self):
+        if self.holdingItem is None:
+            return True
+        else:
+            return False
     
 
 
@@ -139,6 +166,7 @@ class Item:
 class Inventory:
     def __init__(self):
         self.inventory = []
+        self.timer = Timer(0, 10)
 
 
 
@@ -156,20 +184,26 @@ class Inventory:
 
     def useItem(self, item_name):
         if not self.itemExists(item_name):
-            return 
+            return False
         for container in self.inventory:
-            if container.holdingItem.name == item_name:
+            if container.holdingItem == None:
+                continue
+            elif container.holdingItem.name == item_name:
                 container.holdingItem.qty -= 1
                 self.streamline(container)
-   
+                print("Here")
+                return True
+        return False
+
     def qtyOf(self, item_name):
         for container in self.inventory:
-            if container.holdingItem.name == item_name:
+            if container.holdingItem == None:
+                continue
+            elif container.holdingItem.name == item_name:
                 return container.holdingItem.qty
             
     def streamline(self, container):
         if self.qtyOf(container.holdingItem.name) == 0:
-            del container.holdingItem
             container.holdingItem = None
 
     def itemExists(self, item_name):
@@ -238,6 +272,7 @@ class CircularInventory(Inventory):
         self.num_slots = game.TOTAL_ITEMS
         self.slot_angle = 360 / self.num_slots
         self.permission = True
+        self.used = False
 
         for i in range(self.num_slots):
             self.start_angle = i * self.slot_angle
@@ -246,9 +281,16 @@ class CircularInventory(Inventory):
             container.item = f"Item {i+1}"  # Example item
             self.inventory.append(container)
 
-    def update(self, mouse_pos):
+    def update(self, mouse_pos, functions):
         for container in self.inventory:
-            container.check_hover(mouse_pos)
+            if container.detect_click(mouse_pos, functions, pygame.mouse.get_pressed()) and container.holdingItem is not None and not self.used:
+                self.used = self.useItem(container.holdingItem.name)
+
+        print(self.used)
+        if self.used:
+            self.timer.start
+        if self.timer.finished:
+            self.used = False
 
     def toggle(self):
         if self.permission:
@@ -257,7 +299,7 @@ class CircularInventory(Inventory):
             self.permission = True
 
     def draw(self, surface):
-        print(self.permission)
+        # print(self.permission)
         for container in self.inventory:
             if self.permission:
                 container.draw(surface)

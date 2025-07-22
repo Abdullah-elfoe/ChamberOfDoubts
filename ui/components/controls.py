@@ -7,6 +7,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 
 import pygame
 from config import game
+from scripts.timer import Timer
 pygame.init()
 
 
@@ -36,6 +37,7 @@ class MiniButton:
         if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
             for function in functions:
                 function()
+            return True
 
     def draw(self, surface):
         # Draw as a diamond shape (rotated square)
@@ -66,6 +68,8 @@ class DiamondPanel:
         self.size = size
 
         self.color = (100, 100, 100)
+        self.timer = Timer(0, 10)
+        self.pressed = False
 
         # Define main diamond points
         half = size / 2
@@ -99,7 +103,13 @@ class DiamondPanel:
         for btn in self.buttons:
             btn.draw(surface)
             btn.check_hover(mouse_pos)
-            btn.detect_click(mouse_pos, functions.get(btn.name,[]), pygame.mouse.get_pressed())
+            
+            if self.pressed:
+                self.timer.start
+            if self.timer.finished:
+                self.pressed = False
+            if not self.pressed:
+                self.pressed = btn.detect_click(mouse_pos, functions.get(btn.name,[]), pygame.mouse.get_pressed())
 
 
 def main():

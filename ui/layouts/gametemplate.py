@@ -35,7 +35,7 @@ class Template:
             max_health=4
         )
         self.myInventory = inventory.CircularInventory(
-            center=(400, 300), radius=200
+            center=(general.WINDOW_WIDTH//2, general.WINDOW_HEIGHT//2), radius=general.CIRCULAR_INVENTORY_RADIUS
         )
         self.opponentInventory = inventory.SqaureInventory(
             (general.WINDOW_WIDTH//2-(general.SQUAREINVENTORY_WIDTH//2), ui.MARGIN)
@@ -69,8 +69,9 @@ if __name__ == "__main__":
     running = True
     for x in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
         template.opponentInventory.addToInventory(x)
+        for y in range(23):
+            template.myInventory.addToInventory(x)
 
-        template.myInventory.addToInventory(x)
     while running:
         mouse_pos = pygame.mouse.get_pos()
 
@@ -79,6 +80,8 @@ if __name__ == "__main__":
                 running = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    for item in template.myInventory.inventory:
+                        print(item.holdingItem.name)
                     template.gun.fire()
 
         screen.fill((30, 30, 30))
@@ -102,7 +105,8 @@ if __name__ == "__main__":
         
         # My Inventory ----------------------
         template.myInventory.draw(screen)
-        template.myInventory.update(mouse_pos)
+        template.myInventory.update(mouse_pos, [sounds.CLICK.play])
+        # template.myInventory.
         # My Inventory ----------------------
 
         # Gun object-------------------------
