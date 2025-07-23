@@ -9,10 +9,11 @@ class HealthBar:
         self.current_health = max_health
         self.color_full = color_full
         self.color_empty = color_empty
+        self.alive = True
 
-    def hit(self):
+    def hit(self, default=1):
         if self.current_health > 0:
-            self.current_health -= 1
+            self.current_health -= default
 
     def heal(self):
         if self.current_health < self.max_health:
@@ -24,7 +25,7 @@ class HealthBar:
 
         # Calculate size of each square based on total width and number of health points
         square_width = (self.total_width - (self.max_health - 1) * padding) / self.max_health
-
+        self.safetyCheck()
         for i in range(self.max_health):
             rect = pygame.Rect(
                 x + i * (square_width + padding),
@@ -34,6 +35,10 @@ class HealthBar:
             )
             color = self.color_full if i < self.current_health else self.color_empty
             pygame.draw.rect(surface, color, rect, border_radius=3)
+
+    def safetyCheck(self):
+        if self.current_health <= 0:
+            self.alive = False
 
 def main():
     screen = pygame.display.set_mode((800, 600))

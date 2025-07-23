@@ -8,6 +8,7 @@ from config import game, general, ui
 import pygame
 import math
 from scripts.timer import Timer
+from scripts.items import function_list
 
 pygame.init()
 class SquareItemContainer:
@@ -23,8 +24,15 @@ class SquareItemContainer:
     def check_hover(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
 
+    def detect_click(self, mouse_pos, mouse_pressed):
+        if self.rect.collidepoint(mouse_pos) and mouse_pressed[0]:
+            return True
+        return False
+
     def draw(self, surface):
+
         # Choose color based on hover state
+        
         color = self.hover_color if self.is_hovered else self.color
         
         # Draw the slot
@@ -55,10 +63,7 @@ class SquareItemContainer:
 
     @property
     def isEmpty(self):
-        if self.holdingItem is None:
-            return True
-        else:
-            return False
+        return self.holdingItem is None
 
 
 class CircularItemContainer:
@@ -97,6 +102,7 @@ class CircularItemContainer:
 
 
     def detect_click(self, mouse_pos, functions=[], mouse_pressed=pygame.mouse.get_pressed()):
+        
         """
         Detects a click using existing check_hover logic and mouse button state.
         
@@ -161,12 +167,19 @@ class Item:
         self.name = name
         self.image = pygame.image.load(game.PATHS[name]).convert_alpha() 
         self.qty = 0
+        self.function = lambda: ...
+        self.parameter = ...
+    
+    def use(self):
+        self.function(self.parameter)
+
+
     
 
 class Inventory:
     def __init__(self):
         self.inventory = []
-        self.timer = Timer(0, 10)
+        self.timer = Timer(0, 30)
 
 
 
@@ -178,11 +191,13 @@ class Inventory:
             elif (container.holdingItem is None):
                 container.holdingItem = Item(name)
                 container.holdingItem.qty = qty
+                container.holdingItem.function = function_list.get(name, [None])[0]
+                container.holdingItem.parameter = function_list.get(name, [None,None])[1]
                 break
             
                      
 
-    def useItem(self, item_name):
+    def useItem(self, item_name, discard=False):
         if not self.itemExists(item_name):
             return False
         for container in self.inventory:
@@ -190,8 +205,11 @@ class Inventory:
                 continue
             elif container.holdingItem.name == item_name:
                 container.holdingItem.qty -= 1
+                if not discard:
+                    container.holdingItem.use()
                 self.streamline(container)
-                print("Here")
+
+              
                 return True
         return False
 
@@ -218,6 +236,7 @@ class Inventory:
             return True
         else:
             return False
+        
 
     def __len__(self):
         count = 0
@@ -235,6 +254,9 @@ class SqaureInventory(Inventory):
         self.Height = general.SQUAREINVENTORY_CONTAINER_HEIGHT
         self.num_slots = game.TOTAL_ITEMS
         self.permission = True
+        self.hoverPermission = False
+        self.clicked = False
+        self.clicked_item = ...
 
         for i in range(self.num_slots):
             container = SquareItemContainer((self.x, self.y), self.width, self.Height)
@@ -242,10 +264,16 @@ class SqaureInventory(Inventory):
             self.x += (self.width + ui.MARGIN)
 
 
-    def update(self, mouse_pos):
+    def update(self, mouse_pos, mouse_pressed=None):
         for container in self.inventory:
-            container.check_hover(mouse_pos)
-    
+            if self.hoverPermission:
+                container.check_hover(mouse_pos)
+                if container.detect_click(mouse_pos, mouse_pressed):
+                    self.clicked = True
+                    if container.holdingItem is not None:
+                        self.clicked_item = container.holdingItem.name
+         
+         
     def toggle(self):
         if self.permission:
             self.permission = False
@@ -256,10 +284,28 @@ class SqaureInventory(Inventory):
         for container in self.inventory:
             if container.holdingItem is not None and self.permission:
                 container.draw(surface)
+    
+    def GrantPermission(self):
+        self.permission = True
+
+    def Refuse(self):
+        self.permission = False
 
     # def generateCoords(self):
     #     for container in self.inventory:
     #         if container.holdingItem is None:
+
+    def loseItemCheck(self, inventory):
+
+        if self.hoverPermission and self.clicked:
+            try:
+                self.useItem(self.clicked_item, True)
+                inventory.addToInventory(self.clicked_item)
+                self.clicked = False
+                self.clicked_item = None
+                self.hoverPermission = False
+            except:
+                ...
 
         
 
@@ -281,22 +327,29 @@ class CircularInventory(Inventory):
             container.item = f"Item {i+1}"  # Example item
             self.inventory.append(container)
 
-    def update(self, mouse_pos, functions):
-        for container in self.inventory:
-            if container.detect_click(mouse_pos, functions, pygame.mouse.get_pressed()) and container.holdingItem is not None and not self.used:
-                self.used = self.useItem(container.holdingItem.name)
+    def update(self, mouse_pos, functions=[]):
+        if self.permission:
+            for container in self.inventory:
+                if container.detect_click(mouse_pos, functions, pygame.mouse.get_pressed()) and container.holdingItem is not None and not self.used:
+                    self.used = self.useItem(container.holdingItem.name)
 
-        print(self.used)
+      
         if self.used:
             self.timer.start
-        if self.timer.finished:
-            self.used = False
+            if self.timer.finished:
+                self.toggle(functions)
+                self.used = False
 
-    def toggle(self):
+    def toggle(self, f_list=[]):
         if self.permission:
             self.permission = False
         elif not self.permission:
             self.permission = True
+        for f in f_list:
+            f()
+
+    def GrantPermission(self):
+        self.permission = True
 
     def draw(self, surface):
         # print(self.permission)
@@ -326,6 +379,7 @@ if __name__ == "__main__":
     for item in game.SPECIAL_ITEMS+game.INVENTORY_ITEMS:
         inventory.addToInventory(item, 40)
     running = True
+    
     while running:
         mouse_pos = pygame.mouse.get_pos()
 

@@ -19,3 +19,11 @@ CONTROLS_PATH = {
     "Inventory": "assets/images/general/box.png",
     "Shoot": "assets/images/general/shoot.png"
 }
+
+
+PHASES_COUNT = 3
+PHASES = {
+    1:[2, 6, 4], # Items, bullets, Health
+    2:[3, 8, 6],
+    3:[4, 12, 8]
+}

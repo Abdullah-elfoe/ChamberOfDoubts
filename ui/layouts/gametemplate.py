@@ -5,7 +5,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 """ Reseting the root diretory manually"""
 
 from config import general, ui, game, sounds
-from ui.components import controls, healthbar, inventory
+from ui.components import controls, healthbar, inventory, textarea
 from ui.Animations import gunfire
 import pygame
 
@@ -22,13 +22,13 @@ class Template:
             button_size_ratio=general.BUTTON_TO_PANEL_RATIO,   
             button_offset_ratio=general.DISTANCE_FROM_CENTER  
         )
-        self.myHealthBar = healthbar.HealthBar(
+        self.opponentHealthBar = healthbar.HealthBar(
             pos=(ui.MARGIN, general.WINDOW_HEIGHT-general.HEALTHBAR_HEIGHT-ui.MARGIN), 
             total_width=general.HEALTHBAR_WIDTH, 
             height=general.HEALTHBAR_HEIGHT, 
             max_health=4
         )
-        self.opponentHealthBar = healthbar.HealthBar(
+        self.myHealthBar = healthbar.HealthBar(
             pos=(general.WINDOW_WIDTH-general.HEALTHBAR_WIDTH-ui.MARGIN, general.WINDOW_HEIGHT-general.HEALTHBAR_HEIGHT-ui.MARGIN), 
             total_width=general.HEALTHBAR_WIDTH, 
             height=general.HEALTHBAR_HEIGHT,  
@@ -41,6 +41,14 @@ class Template:
             (general.WINDOW_WIDTH//2-(general.SQUAREINVENTORY_WIDTH//2), ui.MARGIN)
             )
         
+        self.infoBooth = textarea.TextBox(100, 100, 150, 150, "Bullets info", "placeHolder")
+        # self.infoBooth.permission = False
+
+        self.PlayerSelectionPanel = controls.ButtonManager()
+        self.PlayerSelectionPanel.add_button(controls.Button(300, 200, 200, 60, "Self"))
+        self.PlayerSelectionPanel.add_button(controls.Button(300, 300, 200, 60, "Opponent"))
+
+        
         font = pygame.font.SysFont("helvetica", general.PLAYER_NAME_SIZE)
         self.myname = font.render(general.PLAYER_NAME, True, (255, 255, 255))
         self.opponentName = font.render("Opponent", True, (255, 255, 255))
@@ -52,11 +60,13 @@ class Template:
 
     def draw(self):...
 
-pygame.mouse.get_pressed()
+
 
 
 pygame.mixer.init()
 
+def game_functions():
+    ...
 
 
 if __name__ == "__main__":
@@ -83,9 +93,13 @@ if __name__ == "__main__":
                     for item in template.myInventory.inventory:
                         print(item.holdingItem.name)
                     template.gun.fire()
+            template.PlayerSelectionPanel.handle_event(event)
+            template.infoBooth.handle_event(event)
+
 
         screen.fill((30, 30, 30))
         template.gun.update()
+
         # Health Bars ------------------------------
         template.myHealthBar.draw(screen)
         template.opponentHealthBar.draw(screen)
@@ -114,6 +128,13 @@ if __name__ == "__main__":
         # Gun object-------------------------
 
 
+        # Player Selection Panel ------------
+        # template.PlayerSelectionPanel.draw_all(screen)
+        # Player Selection Panel ------------
+
+        # Info Booth ------------
+        template.infoBooth.draw(screen)
+        # Info Booth ------------
 
 
 

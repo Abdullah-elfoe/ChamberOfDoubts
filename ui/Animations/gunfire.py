@@ -59,11 +59,14 @@ class Gun(BaiscAnimation):
         self.frames = [pygame.transform.scale(frame, (int(frame.get_size()[0] * 1.4), int(frame.get_size()[1] * 1.4))) for frame in self.frames]
         super().__init__(self.frames,pos,  frame_duration=3, loop=False)
         self.permission = True
+        self.fire_permission = True
+        self.fired = False
 
     def fire(self):
-        if self.permission:
-
+        if self.permission and self.fire_permission:
             self.play()
+            self.fired = True
+
 
     def toggle(self):
         if self.permission:
@@ -75,6 +78,11 @@ class Gun(BaiscAnimation):
         if self.permission:
             super().draw(surface)
 
+    def GrantPermission(self):
+        self.permission = True
+
+    def Refuse(self):
+        self.permission = False
 if __name__ == "__main__":
 
     pygame.init()

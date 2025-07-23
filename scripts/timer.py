@@ -5,6 +5,7 @@ class Timer:
         self.pointer = self.start_time
         self.increment = 1
         self.paused = False
+        self.ran = False
 
     @property
     def start(self):
@@ -17,6 +18,7 @@ class Timer:
     @property
     def reset(self):
         self.pointer = self.start_time
+        self.ran = True
 
     @property
     def pause(self):
@@ -28,5 +30,5 @@ class Timer:
 
     @property
     def finished(self):
-        if self.pointer == self.start_time:
+        if self.pointer == self.start_time and self.ran:
             return True
