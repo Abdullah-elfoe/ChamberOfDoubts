@@ -19,6 +19,7 @@ class HealthBar:
     def heal(self):
         if self.current_health < self.max_health:
             self.current_health += 1
+        return self
 
     def draw(self, surface):
         # print(self.permission)

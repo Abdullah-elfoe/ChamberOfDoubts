@@ -21,10 +21,21 @@ CONTROLS_PATH = {
     "Messages":"assets/images/general/messages.png"
 }
 
+DESCRIPTION = {
+    "Glasses": "Lets you peek inside the current chamber. Reveals whether the next shot is live or safe",
+    "Injection": "A quiet relief in chaos. Restores 1 bar of health — no gamble, no pain, just a moment of peace in a bloodstained game",
+    "Clock":"Skips the opponent’s next turn. Gives you a strategic advantage when timed well.",
+    "Bazuka": "Unleashes brutal force, tearing through two bars of life in one strike. It doesn’t just hurt — it scars.",
+    "Signal Jammer":"Removes the current loaded shell from the chamber. The next shell immediately takes its place.",
+    "Switch": "Swaps your chamber with your opponent’s. Dangerous and clever—use when you suspect a bullet.",
+    "Fishing Rod": "Steals a random item from the opponent. Can turn the tide if you grab the right tool.",
+    "Pill":"A silent gamble. Swallow it, and feel your body mend — or take your health 1 bar",
+}
+
 
 PHASES_COUNT = 3
 PHASES = {
-    1:[12, 6, 10], # Items, bullets, Health
-    2:[3, 8, 6],
-    3:[4, 12, 8]
+    1:[2, 2, 5], # Items, bullets, Health
+    2:[3, 2, 7],
+    3:[4, 2, 9]
 }

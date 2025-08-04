@@ -7,6 +7,7 @@ path.append(abspath(join(dirname(__file__), '../../')))
 from config import general, ui, game, sounds
 from ui.components import controls, healthbar, inventory, textarea, widgets
 from ui.Animations import gunfire
+from ui.Animations.FlexibleScreen import ConfirmationWindow
 from .template import Basic
 import pygame
 
@@ -62,6 +63,16 @@ class Template(Basic):
         self.myname = font.render(general.PLAYER_NAME, True, (255, 255, 255))
         self.opponentName = font.render("Opponent", True, (255, 255, 255))
         self.namePermission = False
+
+        self.popup  = ConfirmationWindow(
+            rect=(100, 100, 400, 150),
+            font=pygame.font.SysFont(None, 48),
+            message="Just a simple popup message...",
+            bg_color=(0, 0, 0, 0),  # Transparent background
+            border_color=(0, 0, 0, 0),  # No border
+            auto_hide_secs=5
+        )
+
 
 
         self.gun = gunfire.Gun((general.WINDOW_WIDTH//2+70, general.WINDOW_HEIGHT//2))
@@ -123,6 +134,7 @@ class Template(Basic):
             "Messages":[sounds.CLICK.play, self.notebook.toggle, self.myInventory.close]
             }
             )
+        self.popup.update()
 
 
 
@@ -139,7 +151,7 @@ class Template(Basic):
         if self.namePermission:
             surface.blit(self.opponentName, (ui.MARGIN, general.WINDOW_HEIGHT-(ui.MARGIN*2)-general.HEALTHBAR_HEIGHT-general.PLAYER_NAME_SIZE))
             surface.blit(self.myname, (general.WINDOW_WIDTH-ui.MARGIN-self.myname.get_width(), general.WINDOW_HEIGHT-(ui.MARGIN*2)-general.HEALTHBAR_HEIGHT-general.PLAYER_NAME_SIZE))
-
+        self.popup.draw(surface)
 
     def send(self,*_):
         message = self.notebook.get_chat_text()

@@ -45,6 +45,7 @@ class Game:
         self.opponentTurn = None
         self.ishost = False
         self.ishostElected = False
+        self.phaseshift = False
 
     @property
     def randomizeItems(self):
@@ -52,6 +53,11 @@ class Game:
     
 
     def initBullets(self):
+        
+        self.template.myHealthBar.max_health = self.template.myHealthBar.current_health = game.PHASES[self.currentPhase][2]
+        
+        self.template.opponentHealthBar.max_health = self.template.opponentHealthBar.current_health = self.template.myHealthBar.max_health
+    
         return [choice([True, False]) for _ in range(game.PHASES[self.currentPhase][1])]
 
         # self.bullets = [not True for x in range(game.PHASES[self.currentPhase][1])]
@@ -86,6 +92,7 @@ class Game:
         if self.myTurn:
             if selected  != "":
                 self.template.gun.fire_permission = True
+                
             
             if self.template.gun.fired:
                 if self.bullets[0]:
@@ -156,31 +163,31 @@ class Game:
             self.playComputer()
 
     def PlayMultiplayer(self):
+
+        self.checkForNewPhase()
+        if self.template.popup.visible:
+            # if (self.template.popup.timer.pointer == 59) and (self.template.popup.message.lower() == "game over"):
+            #     self.UImanager.showScreenNo(self.homeScreenNo)
+            return
+        if self.template.popup.message.lower() == "game over":
+            print("Yes it is")
+
+            self.UImanager.showScreenNo(self.homeScreenNo)
+
+            return
         # My inventory init
         if not self.setupMultiplayer:
+            for item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
+                function_list[item][1] = self
+            
             if not self.initMultiplayerTurns():
                 return
             
 
             self.template.notebook.addToNotebook("General", "Game Info", f"turn :{"my" if self.myTurn else "Opponent"}")
-
-
             self.setupMultiplayer = True
             # setting paramters from None to template itself
-            for item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
-                function_list[item][1] = self
-            for item in self.randomizeItems:
-                self.template.myInventory.addToInventory(item)
-            self.template.notebook.addToNotebook("General", "Game Info", f"bullets :{self.bullets}")
             
-            # sending my inventory to the peer
-            # for item in self.template.myInventory.inventory:
-            #     print(item.holdingItem.name, self.template.myInventory.inventory)
-            items = [(item.holdingItem.name, item.holdingItem.qty) for item in self.template.myInventory.inventory if item.holdingItem != None]
-            data = {
-                "Opponent Inventory":items,
-            }
-            self.network.send_game(data)
             self.temporaryFunctions.append(self.template._manage)
             self.template.gun.fire_permission = False
             
@@ -192,6 +199,7 @@ class Game:
             else:
                 if not self.template.PlayerSelectionPanel.permission:
                     self.template.PlayerSelectionPanel.GrantPermission()
+                    self.phaseshift = True
             # print(self.myTurn, self.template.gun.fired)
 
             if self.template.gun.fired:
@@ -298,8 +306,8 @@ class Game:
             if self.electHost():
                 self.ishostElected = True
             return
-        print(self.ishost, "host is "+("" if self.ishostElected else "not ")+ "elected")
         # print("pre")
+        print(True if self.ishost else not True, " HOST")
         if not self.ishost:
             return True
         # print(self.ishost, "host is "+("" if self.ishostElected else "not ")+ "elected")
@@ -308,10 +316,24 @@ class Game:
         self.myTurn = choice([True, False])
         self.opponentTurn = False if self.myTurn else True
         bullets = self.initBullets()
+        for item in self.randomizeItems:
+            self.template.myInventory.addToInventory(item)
+        for item in self.randomizeItems:
+            self.template.opponentInventory.addToInventory(item)
+
+            # sending my inventory to the peer
+            # for item in self.template.myInventory.inventory:
+            #     print(item.holdingItem.name, self.template.myInventory.inventory)
+        myItems = [(item.holdingItem.name, item.holdingItem.qty) for item in self.template.myInventory.inventory if item.holdingItem != None]
+        opponentItems = [(item.holdingItem.name, item.holdingItem.qty) for item in self.template.opponentInventory.inventory if item.holdingItem != None]
         self.network.send_game({
                 "myTurn":self.myTurn,
                 "opponentTurn":self.opponentTurn,
-                "bullets":bullets
+                "bullets":bullets,
+                "mymHB":game.PHASES[self.currentPhase][2],
+                "opponentmHB":game.PHASES[self.currentPhase][2],
+                "Opponent Inventory":myItems,
+                "My Inventory":opponentItems
                 })
         self.bullets = bullets
 
@@ -329,7 +351,6 @@ class Game:
         print(self.network.peerPort, self.network.port)
         if (self.network.peerIp < address.ipAdress) or (self.network.peerPort < self.network.port):
             self.ishost = True
-            print("I am here")
         return True
 
 
@@ -339,6 +360,26 @@ class Game:
             "Opponent Inventory":items,
         }
         self.network.send_game(data)
+
+
+
+    def checkForNewPhase(self):
+        if len(self.bullets) == 0 and self.phaseshift:
+            print("here in phase check")
+            self.currentPhase += 1
+            self.phaseshift = False
+            if not self.currentPhase == 4:
+                self.setupMultiplayer = False
+                self.template.popup.display("level "+str(self.currentPhase))
+                self.network.send_game({"phase":self.currentPhase})
+            else :
+                self.template.popup.display("Game Over")
+                self.network.send_game({"gameOver":True})
+                self.template.myInventory.inventory.clear()
+                self.template.opponentInventory.inventory.clear()
+
+                    
+
 screen = pygame.display.set_mode((general.WINDOW_WIDTH, general.WINDOW_HEIGHT))
 template = Template(object)
 COD = Game(template)

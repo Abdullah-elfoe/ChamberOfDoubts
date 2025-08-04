@@ -8,6 +8,7 @@ def Injection(obj):
     data = {
         "opponentHB":obj.template.myHealthBar.current_health,
         "Opponent Inventory":items,
+        "used":"Injection", 
         }
     
     obj.network.send_game(data)
@@ -20,6 +21,7 @@ def Bazuka(obj):
     data = {
         "Damage":2,
         "Opponent Inventory":items,
+        "used":"Bazuka", 
         }
     obj.network.send_game(data)
 
@@ -29,22 +31,38 @@ def Glasses(obj):
     obj.template.notebook.addToNotebook(
         "General", 
         "Developers", 
-        f"Bullet {"" if obj.bullets[0] else "not"} Found"
+        f"Bullet {"" if obj.bullets[0] else "not"} Found",
         )
     obj.template.notebook.permission = True
     obj.updateInventory()
+    data = {
+        "used":"Glasses", 
+        }
+    obj.network.send_game(data)
+
 
 
 def fishingRod(obj):
     
     obj.template.opponentInventory.hoverPermission=True
     obj.updateInventory()
+    data = {
+        "used":"fishingRod", 
+        }
+    obj.network.send_game(data)
+
 
 
 
 def Clock(obj):
     obj.clockUsed = True
     obj.updateInventory()
+    data = {
+        "used":"Clock", 
+        }
+    obj.network.send_game(data)
+
+
 
 def Switch(obj):
     if obj.bullets[0]:
@@ -54,18 +72,22 @@ def Switch(obj):
     items = [(item.holdingItem.name, item.holdingItem.qty) for item in obj.template.myInventory.inventory if item.holdingItem != None]
     data = {
         "bullets":obj.bullets,
-        "Opponent Inventory":items,    
+        "Opponent Inventory":items,   
+         "used":"Switch", 
         }
     obj.network.send_game(data)
+
 
 def SignalJammer(obj):
     obj.bullets.pop(0)
     items = [(item.holdingItem.name, item.holdingItem.qty) for item in obj.template.myInventory.inventory if item.holdingItem != None]
     data = {
         "bullets":obj.bullets,
-        "Opponent Inventory":items,    
+        "Opponent Inventory":items,   
+        "used":"SignalJammer", 
         }
     obj.network.send_game(data)
+
 
 def Pill(obj):
     hit = choice([True, False])
@@ -75,10 +97,13 @@ def Pill(obj):
         data = {
             "opponentHB":obj.template.myHealthBar.current_health,
             "Opponent Inventory":items,
+            "used":"Pill",
             }
         obj.network.send_game(data)
     else:
         Injection(obj)
+    
+
 
 
 

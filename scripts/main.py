@@ -77,7 +77,13 @@ if __name__=="__main__":
                 bullets = msg['content'].get("bullets")
                 o_HB = msg['content'].get("opponentHB")
                 m_HB = msg['content'].get("myHB")
+                o_mHB = msg['content'].get("opponentmHB")
+                m_mHB = msg['content'].get("mymHB")
                 myinv = msg['content'].get("My Inventory")
+                phase = msg['content'].get("phase")
+                gameOver = msg['content'].get("gameOver")
+                used = msg['content'].get("used")
+
                 if (myturn is not None) and (opponentTurn is not None):
                     ChamberOfDoubts.opponentTurn = myturn
                     ChamberOfDoubts.myTurn = opponentTurn
@@ -98,8 +104,22 @@ if __name__=="__main__":
                             ChamberOfDoubts.game.myInventory.addToInventory(item, qty)
                         print(item, qty, "HERE")
                     print("here", ChamberOfDoubts.myTurn, ChamberOfDoubts.opponentTurn, counter)
-
-
+                if o_mHB is not None:
+                    print("I am here!!!")
+                    ChamberOfDoubts.game.myHealthBar.max_health = o_mHB
+                    ChamberOfDoubts.game.opponentHealthBar.max_health = m_mHB
+                    ChamberOfDoubts.game.myHealthBar.current_health = o_mHB
+                    ChamberOfDoubts.game.opponentHealthBar.current_health = m_mHB 
+                if phase:
+                    ChamberOfDoubts.currentPhase = phase
+                    ChamberOfDoubts.game.popup.display("Level "+str(phase))
+                if gameOver is True:
+                    ChamberOfDoubts.game.opponentInventory.clear()
+                    ChamberOfDoubts.game.myInventory.clear()
+                    if not ChamberOfDoubts.game.popup.visible:
+                        ChamberOfDoubts.UImanager.showScreenNo(ChamberOfDoubts.homeScreenNo)
+                if used:
+                    ChamberOfDoubts.game.popup.display(f"{used}")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -107,7 +127,7 @@ if __name__=="__main__":
             ChamberOfDoubts.game.handleEvent(event)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    print(ChamberOfDoubts.bullets)
+                    print(ChamberOfDoubts.currentPhase)
           
 
             
