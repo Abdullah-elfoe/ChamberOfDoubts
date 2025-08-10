@@ -245,6 +245,13 @@ class Inventory:
             if container.holdingItem is not None:
                 count += 1
         return count
+    
+    def getItems(self):
+        items = []
+        for container in self.inventory:
+            if container.holdingItem is not None:
+                items.append((container.holdingItem.name, container.holdingItem.qty))
+        return items
 
 
 class SqaureInventory(Inventory):

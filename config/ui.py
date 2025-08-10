@@ -11,7 +11,7 @@ SUBWINDOWWIDTH = 300
 SUBWINDOWHEIGHT = 300
 
 MODES = ["Computer","Multiplayer"]
-BOTS = ["Chatgpt", "Bloom", "Torrus"]
+BOTS = ["Bot 1"]
 
 BOTS.extend(["Upcoming" for x in range(1)])
 

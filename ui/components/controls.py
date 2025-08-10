@@ -371,8 +371,10 @@ class LabelButton:
         if self.click_enabled and event.type == pygame.MOUSEBUTTONDOWN and self.rect.collidepoint(event.pos):
             if self.function is not None: 
                 if self.text in ui.BOTS:
-                    self.parameters.botClicked = self.text
+                    self.parameters.botsClicked = self.text
+                
                 elif self.text in ui.MODES:
+                    self.parameters.botsClicked = None
                     self.parameters.modClicked = self.text
                 self.function(self.parameters)
             return True 

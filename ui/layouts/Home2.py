@@ -105,12 +105,14 @@ class Template(Basic):
         self.connectScreen.handle_event(event)
 
 
+
+
     def update(self, mouse_pos, dt):
         if not self.visible:
             return 
         self.gamemode.update(mouse_pos, dt)
         self.bots.update(mouse_pos, dt)
-
+        
 
     def draw(self, surface):
         if self.gamemode.permission:
