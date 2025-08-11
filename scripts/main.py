@@ -14,7 +14,7 @@ from ui.Animations.MatchMaking import MatchmakingDots
 from scripts.Networking import P2PNetwork
 from config import general
 from json import loads
-
+from bots.base import PrimaryLayer
 
 
 
@@ -127,7 +127,12 @@ if __name__=="__main__":
             ChamberOfDoubts.game.handleEvent(event)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    print(ChamberOfDoubts.currentPhase)
+                    # print(ChamberOfDoubts.currentPhase)
+                    print(ChamberOfDoubts.bullets, len(ChamberOfDoubts.bullets))
+                    print(PrimaryLayer.bullets, len(PrimaryLayer.bullets))
+                    print(PrimaryLayer.blanks, "blanks", PrimaryLayer.live, "live")
+
+
           
 
             

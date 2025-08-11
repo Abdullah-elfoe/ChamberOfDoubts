@@ -3,21 +3,7 @@ from random import choices, choice
 from time import sleep
 
 
-class State(Enum):
-    """
-    Enum representing the state of a bot.
-    """
-    defensive = 1
-    aggressive = 2
-    neutral = 3
 
-
-class Layers(Enum):
-    """
-    Enum representing the layers for decision making.
-    """
-    primary = 1
-    secondary = 2
 
 
 class PrimaryLayer:
@@ -32,6 +18,7 @@ class PrimaryLayer:
     live = 0
     myhealth = 0
     playerhealth = 0
+    totalHealth = 0
     critical = False
     playerItems = []
     myItems = []
@@ -43,12 +30,13 @@ class PrimaryLayer:
     
 
     @classmethod
-    def setState(cls, bullets, myhealth, playerhealth, playerItems=[], myItems=[]):
+    def setState(cls, bullets, myhealth, playerhealth, playerItems=[], myItems=[], total_health=5):
         cls.bullets = bullets
         cls.myhealth = myhealth
         cls.playerhealth = playerhealth
         cls.playerItems = playerItems
         cls.myItems = myItems
+        cls.totalHealth = total_health
 
     @classmethod
     def setShells(cls, blanks, live):
@@ -73,6 +61,16 @@ class PrimaryLayer:
                 inventory_dict[item] -= 1
 
         return list(inventory_dict.items())
+    
+    @staticmethod
+    def addItem(item_name, inventory):
+        for idx, (name, qty) in enumerate(inventory):
+            if name == item_name:
+                # Item found → increment qty
+                inventory[idx] = (name, qty + 1)
+                return
+        # Item not found → add it with qty 1
+        inventory.append((item_name, 1))
 
 
     @classmethod
@@ -91,7 +89,9 @@ class PrimaryLayer:
         for item, qty in inventory:
             # print(qty if qty==0 else '\033[F')
             if item_name == item and (qty > 0):
-                return True
+                return qty
+        else:
+            return False
 
     @classmethod
     def RunAlgorithm(cls):
@@ -101,10 +101,10 @@ class PrimaryLayer:
         """
         state = State.neutral
         if cls.playerhealth <= 2:
-            if cls.itemExists("Bazuka", cls.myItems):
+            if cls.itemExists("Bazuka", cls.myItems) or (cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Bazuka", cls.playerItems)):
                 state =  State.aggressive
 
-        elif cls.myhealth <= 2:
+        elif cls.myhealth <= (cls.totalHealth//cls.myhealth):
             if cls.itemExists("Injection", cls.myItems) :
                 state = State.defensive 
             elif cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Injection", cls.playerItems):
@@ -124,7 +124,6 @@ class SecondaryLayer:
     defensiveWeight = 0.5
     aggressiveWeight = 0.5
     neutralWeight = 0.5
-    actionChain = []
 
 
     def __new__(cls, *args, **kwargs):
@@ -144,22 +143,133 @@ class SecondaryLayer:
 
 
 class Defensive:
+
     @classmethod
-    def play(self):
+    def selection(cls):
+        items = []
+        glassesUsed = False
+        if PrimaryLayer.itemExists("Glasses", PrimaryLayer.myItems):
+            items.append("Glasses")
+            glassesUsed = False
+
+        elif PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems) and PrimaryLayer.itemExists("Glasses", PrimaryLayer.playerItems):
+            items.extend(["Fishing Rod", "Glasses", "Glasses"])
+            PrimaryLayer.playerItems = PrimaryLayer.useItems(["Glasses"], PrimaryLayer.playerItems)
+            PrimaryLayer.myItems = PrimaryLayer.useItems(["Fishing Rod"], PrimaryLayer.myItems)
+            glassesUsed = False
+
+
+        if not glassesUsed:
+            shellProbability, blankProbability = PrimaryLayer.probabilities()
+            choice, items = Neutral.selection(shellProbability, blankProbability)
+        else:
+            choice = "opponent" if PrimaryLayer.bullets[0] else "Self"
+        
+        return choice, items
+    
+
+    @classmethod
+    def main(self):
         ...
 
 
 class Aggressive:
+
     @classmethod
-    def play(self):
-        ...
+    def switchShell(cls, Glasses, Switch, FishingRod, playerSwitch, items):
+        if not PrimaryLayer.bullets[0]:
+            if Switch:
+                items.append("Switch")
+                choice = "opponent"
+            elif playerSwitch and FishingRod:
+                items.extend(["Fishing Rod", "Switch", "Switch"])
+                choice = "opponent"
+            choice = "Self"
+        else:
+            choice = "opponent"
+        return choice
+    
+    @classmethod
+    def endOpponent1(cls):
+        items = []
+        if cls.itemExists("Bazuka", cls.myItems):
+            items.append("Bazuka")
+            PrimaryLayer.myItems = PrimaryLayer.useItems(["Bazuka"], PrimaryLayer.myItems)
+        elif cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Bazuka", cls.playerItems):
+            items.extend(["Fishing Rod", "Bazuka", "Bazuka"])
+            PrimaryLayer.playerItems = PrimaryLayer.useItems(["Bazuka"], PrimaryLayer.playerItems)
+            PrimaryLayer.myItems = PrimaryLayer.useItems(["Fishing Rod", "Bazuka"], PrimaryLayer.myItems)
+        return items
+    
+
+    @classmethod
+    def endOpponent(cls):
+        items = []
+        Bazuka, Glasses, FishingRod, Clock, Switch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.myItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.myItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.myItems)
+        playerBazuka, playerGlasses, playerClock, playerSwitch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.playerItems)
+        
+        choice = "opponent"
+        if PrimaryLayer.playerhealth >= 2:
+            print("HEY BOI")
+            if Bazuka and Glasses:
+                items.extend(["Bazuka", "Glasses"])
+                choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
+                print("1")
+
+            elif Bazuka and FishingRod and playerGlasses and not Glasses:
+                items.extend(["Bazuka", "Fishing Rod","Glasses", "Glasses"])
+                fh = FishingRod
+                fh -= 1
+                choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
+                print("2")
+
+                    
+            elif FishingRod and Glasses and playerBazuka and not Bazuka:
+                items.extend(["Glasses", "Fishing Rod","Bazuka", "Bazuka"])
+                fh = FishingRod
+                fh -= 1
+                choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
+                print("3")
+            elif FishingRod>1 and playerBazuka and playerGlasses and not Bazuka and not Glasses:
+                items.extend(["Fishing Rod", "Bazuka", "Bazuka", "Fishing Rod", "Glasses", "Glasses"])
+                FishingRod -= 1
+                choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
+                print("4")
+            elif Glasses and Clock:
+                items.extend(["Clock", "Glasses"])
+                if Glasses:
+                    choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
+                print("5")
+            elif Clock:
+                items.append("Clock")
+                if Glasses:
+                    choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
+                print("6")
+            elif FishingRod and playerClock:
+                items.extend(["Fishing Rod","Clock", "Clock"])
+                fh = FishingRod
+                fh -= 1
+                if Glasses:
+                    choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
+                print("7")
+
+
+            return choice, items
+                
+            
+    @classmethod
+    def main(cls, chain):
+        print("Agrressive")
+        choice, items = cls.endOpponent()
+        chain.extend(items)
+        return choice
 
 
 class Neutral:
 
     counter = 0
     @classmethod
-    def selection(cls, shellProbablity, blankProbability, randomness=True): # It works !!
+    def selection(cls, shellProbablity, blankProbability, randomness=True):
         items = []
         useswtich = False
         selection = None
@@ -167,6 +277,7 @@ class Neutral:
             useswtich  = choice([True, False]) if randomness else True
             if useswtich:
                 # print(PrimaryLayer.myItems, "Initial")
+                print("Ujing switch")
                 for index, data in enumerate(PrimaryLayer.myItems):
                     item, qty = data
                     # print(item)
@@ -197,14 +308,18 @@ class Neutral:
             selection = choice([True, False]) if randomness else True
             if selection:
         # choice([True, False]):
-                items.extend(["Fishing Rod", "Clock"])
+                items.extend(["Fishing Rod", "Clock", "Clock"])
+                print("Ujing rod to steal clock")
+
                 PrimaryLayer.myItems = PrimaryLayer.useItems(["Fishing Rod"], PrimaryLayer.myItems)
                 PrimaryLayer.playerItems = PrimaryLayer.useItems(["Clock"], PrimaryLayer.playerItems)
 
             # sleep(2)
-        if PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems): 
+        elif PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems): 
             selection = choice([True, False]) if randomness else True
+            selection = False 
             if selection:
+                print("Ujing clock")
                 items.append("Clock")
                 PrimaryLayer.myItems = PrimaryLayer.useItems(["Clock"], PrimaryLayer.myItems)
                 
@@ -222,21 +337,37 @@ class Neutral:
                 items.append("Signal Jammer")
                 PrimaryLayer.reCalculateShells()
                 PrimaryLayer.myItems = PrimaryLayer.useItems(["Signal Jammer"], PrimaryLayer.myItems)
+                PrimaryLayer.bullets.pop(0)
+        return items
+                
                 # PrimaryLayer.reCalculateShells()
 
-    
+    @classmethod
+    def regainHealth(cls):
+        items = []
+        item = "Injection" if PrimaryLayer.itemExists("Injection", PrimaryLayer.myItems) else "Pills" if PrimaryLayer.itemExists("Pill", PrimaryLayer.myItems) else None
+
+        # if PrimaryLayer.itemExists("Injection", PrimaryLayer.myItems):
+        if item:
+            items.append(item)
+            PrimaryLayer.myItems = PrimaryLayer.useItems([item], PrimaryLayer.myItems)
+        # elif PrimaryLayer.itemExists("Pill", PrimaryLayer.myItems):
+        #     items.append("Pill")
+        return items if PrimaryLayer.myhealth < PrimaryLayer.totalHealth else []
 
     @classmethod
-    def play(cls, chain):
-        print(PrimaryLayer. bullets, "pre")
+    def main(cls, chain):
+        print(PrimaryLayer.bullets, len(PrimaryLayer.bullets), "pre Base.py")
+        chain.extend(cls.lessenShells())
+        chain.extend(cls.regainHealth())
         shellProbablity, blankProbability = PrimaryLayer.probabilities()
         selection, items = cls.selection(shellProbablity, blankProbability)
         chain.extend(items)
-        items = cls.checkForSecondTurn()
-        if len(items) > 0:
-            chain.extend(items)
-        print(PrimaryLayer. bullets, "post")
-
+        chain.extend(cls.checkForSecondTurn())
+        print(PrimaryLayer.bullets, len(PrimaryLayer.bullets), "post Base.py")
+        
+        PrimaryLayer.reCalculateShells()
+        PrimaryLayer.bullets.pop(0)
         return selection
         
 
@@ -244,3 +375,12 @@ class Neutral:
 
             # Play defensively
             # Defensive.play()
+
+
+class State(Enum):
+    """
+    Enum representing the state of a bot.
+    """
+    defensive = 1
+    aggressive = 2
+    neutral = 3

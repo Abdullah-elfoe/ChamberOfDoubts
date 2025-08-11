@@ -24,12 +24,14 @@ pygame.init()
 pygame.font.init()
 pygame.mixer.init()
 BLOOM = bloom.Bot("Bloom")
+screen = pygame.display.set_mode((general.WINDOW_WIDTH, general.WINDOW_HEIGHT))
 
 class Base:
     def __init__(self, template):
         self.template = template
         self.network = P2PNetwork()
         self.timer = Timer(0, 60)
+        self.botTimer = Timer(0, 100000)
         self.setupMultiplayer = False
         self.setupBot = False
         self.go = True
@@ -60,7 +62,7 @@ class Game(Base):
         
         self.myTurn = None
         self.opponentTurn = None
-        
+
         
 
     
@@ -72,14 +74,15 @@ class Game(Base):
         
         self.template.opponentHealthBar.max_health = self.template.opponentHealthBar.current_health = self.template.myHealthBar.max_health
         array = [choice([True, False]) for _ in range(game.PHASES[self.currentPhase][1])]
-        array.insert(0, False)
+        array = [True for _ in range(game.PHASES[self.currentPhase][1])]
+
         return array
 
         # self.bullets = [not True for x in range(game.PHASES[self.currentPhase][1])]
 
 
     def initItems(self): 
-        for item in ['Glasses', 'Signal Jammer']:
+        for item in ['Pill', 'Signal Jammer']:
 
         # for item in self.randomizeItems:
             self.template.opponentInventory.addToInventory(item)
@@ -90,14 +93,16 @@ class Game(Base):
             self.template.myInventory.addToInventory(items)
         
 
-        self.template.opponentInventory.addToInventory('Fishing Rod', 5)
+        self.template.opponentInventory.addToInventory('Injection', 2)
+        self.template.opponentInventory.addToInventory('Pill', 2)
+
         self.template.myInventory.addToInventory('Clock', 5)
 
 
 
     def initTurns(self):
         # self.myTurn = choice([True, False])
-        self.myTurn = False
+        self.myTurn = True
         self.opponentTurn = True if not self.myTurn else False
 
 
@@ -177,7 +182,7 @@ class Game(Base):
             # bot functionality
 
     def playComputer(self):
-        self.healthCheck()
+        # self.healthCheck()
         # self.bulletCheck()
         self.safetyDelay()
         self.initBot()
@@ -188,13 +193,13 @@ class Game(Base):
 
         selected = self.template.PlayerSelectionPanel.selected
         if self.myTurn:
+            # print(selected)
             if selected  != "":
                 self.template.gun.fire_permission = True
             else:
                 if not self.template.PlayerSelectionPanel.permission:
                     self.template.PlayerSelectionPanel.GrantPermission()
                     self.phaseshift = True
-            
             if self.template.gun.fired:
                 if self.bullets[0]:
                     sounds.FIRE.play()
@@ -225,9 +230,11 @@ class Game(Base):
             
         else:
             self.template.gun.fire_permission = False
-            print(self.bullets,len(self.bullets), "pre")
+            self.template.PlayerSelectionPanel.permission = False
+            selected = self.template.PlayerSelectionPanel.selected = ""
+            # print(self.bullets,len(self.bullets), "pre")
             # print(self.template.opponentInventory.getItems(), "\tlogic.py computer inv top ")
-            self.BOT.udpate(self.bullets, self.template.opponentHealthBar.current_health, self.template.myHealthBar.current_health, self.template.myInventory.getItems(), self.template.opponentInventory.getItems())
+            self.BOT.udpate(self.bullets[:], self.template.opponentHealthBar.current_health, self.template.myHealthBar.current_health, self.template.myInventory.getItems(), self.template.opponentInventory.getItems())
             choice = self.BOT.makeMove()
             self.inventoryUpdatedByBot = False
 
@@ -241,19 +248,44 @@ class Game(Base):
             
             obtainedViaFishingRod = False
             # print(self.BOT.actionChain, "action chain")
-            for ind, item in enumerate(self.BOT.actionChain[:]):
+            # print(self.bullets,len(self.bullets), "post")
+            khapy = self.BOT.actionChain[:]
+            for ind, item in enumerate(khapy):
+                self.template.opponentInventory.draw(screen)
+                pygame.display.flip()
+                print(item, ind)
                 if obtainedViaFishingRod:
                     obtainedViaFishingRod = False
+                    self.template.myInventory.useItem(item, discard=True)
                     self.BOT.actionChain.pop(0)
+
                     continue
 
+                # print(item)
                 if item == "Fishing Rod":
                     obtainedViaFishingRod = True
-                    self.template.opponentInventory.addToInventory(self.BOT.actionChain[ind+1])
-                self.template.opponentInventory.useItem(item)
 
-                sleep(2)
+                    self.template.opponentInventory.addToInventory(khapy[ind+1])
+                    self.template.opponentInventory.useItem(item, discard=True if item=="Glasses" else False)
+                    self.template.opponentInventory.draw(screen)
+
+                if item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
+                    self.template.opponentInventory.useItem(item, discard=True if item=="Glasses" else False)
+                    self.template.opponentInventory.draw(screen)
+                    pygame.display.flip()
+
+              
+                    # updaing the bullets if the bot has used the signal jammer
+
+                self.botTimer.start
+                while not self.botTimer.finished:
+                    # print(self.botTimer.pointer)
+                    self.botTimer.start
+                    continue
+
                 self.BOT.actionChain.pop(0)
+                # self.template.opponentInventory.update(pygame.mouse.get_pos(), pygame.mouse.get_pressed())
+  
 
             if self.bullets[0]:
                 sounds.FIRE.play()
@@ -278,9 +310,8 @@ class Game(Base):
         
 
             
-            PrimaryLayer.reCalculateShells()
             self.bullets.pop(0)
-            print(self.bullets,len(self.bullets), "post")
+            # print(self.bullets,len(self.bullets), "most post")
 
             self.hit = 1
 
@@ -491,7 +522,14 @@ class Game(Base):
                 else:
                     blank += 1
             self.BOT.udpateShells(blank, live)
+            self.BOT.udpate(self.bullets[:], self.template.opponentHealthBar.current_health, self.template.myHealthBar.current_health, self.template.myInventory.getItems(), self.template.opponentInventory.getItems())
             self.setupBot = True
+            self.template.myHealthBar.hit(3)
+            self.template.myInventory.addToInventory("Bazuka")
+            self.template.myInventory.addToInventory("Glasses")
+            self.template.opponentInventory.addToInventory("Fishing Rod", 2)
+
+
     def electHost(self):
         if self.network.peerIp is None:
             return 
@@ -560,7 +598,6 @@ class Game(Base):
         #         self.template.opponentInventory.streamline(container)
         #         break
 
-screen = pygame.display.set_mode((general.WINDOW_WIDTH, general.WINDOW_HEIGHT))
 template = Template(object)
 COD = Game(template)
 

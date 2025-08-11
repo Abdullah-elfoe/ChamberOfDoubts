@@ -3,15 +3,14 @@ from .base import PrimaryLayer, SecondaryLayer, State, Defensive, Aggressive, Ne
 
 class Bot:
     
-
     def __init__(self):
         self.actionChain = []
         self.state = State.neutral
         self.turn = False
         SecondaryLayer.setWeights(0.3, 0.5, 0.2)
 
-    def udpate(self, bullets,  myhealth, playerhealth, playerItems=[], myItems=[]):
-        PrimaryLayer.setState(bullets, myhealth, playerhealth, playerItems, myItems)
+    def udpate(self, bullets,  myhealth, playerhealth, playerItems=[], myItems=[], total_health=5):
+        PrimaryLayer.setState(bullets, myhealth, playerhealth, playerItems, myItems, total_health)
 
     def udpateShells(self, blanks, live):
         PrimaryLayer.setShells(blanks, live)
@@ -29,7 +28,9 @@ class Bot:
         #     Aggressive.play()
         # elif self.state == State.neutral:
         #     Neutral.play()
-        choice = Neutral.play(self.actionChain)
+        # print(self.state)
+        choice = Aggressive.main(self.actionChain)
+        # choice = self.state.value.main(self.actionChain)
         return choice
     
   
