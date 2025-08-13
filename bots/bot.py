@@ -22,16 +22,24 @@ class Bot:
 
     def makeMove(self):
         self.chooseState()
+        match self.state:
+            case State.defensive:
+                selection = Defensive.main(self.actionChain)
+            case State.aggressive:
+                selection = Aggressive.main(self.actionChain)
+            case _:
+                selection = Neutral.main(self.actionChain)
+
+
         # if self.state == State.defensive:
-        #     Defensive.play()
+        #     selection = Defensive.main(self.actionChain)
         # elif self.state == State.aggressive:
-        #     Aggressive.play()
+        #     selection = Aggressive.main(self.actionChain)
         # elif self.state == State.neutral:
-        #     Neutral.play()
-        # print(self.state)
-        choice = Aggressive.main(self.actionChain)
+        #     selection = Neutral.main(self.actionChain)
+        print(self.state)
         # choice = self.state.value.main(self.actionChain)
-        return choice
+        return selection
     
   
     @property

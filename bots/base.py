@@ -100,14 +100,17 @@ class PrimaryLayer:
         It calculates the number of shells, probabilities, and makes decisions based on health and items.
         """
         state = State.neutral
-        if cls.playerhealth <= 2:
+        if cls.playerhealth <= 3:
             if cls.itemExists("Bazuka", cls.myItems) or (cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Bazuka", cls.playerItems)):
                 state =  State.aggressive
 
         elif cls.myhealth <= (cls.totalHealth//cls.myhealth):
             if cls.itemExists("Injection", cls.myItems) :
                 state = State.defensive 
-            elif cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Injection", cls.playerItems):
+            # elif cls.itemExists("Fishing Rod", cls.myItems) and cls.itemExists("Injection", cls.playerItems):
+            elif cls.itemExists("Bazuka", cls.playerItems) and cls.itemExists("Glasses", cls.playerItems):
+                state = State.defensive
+            elif cls.itemExists("Bazuka", cls.myItems) or (cls.itemExists("Fishing Rod", cls.playerItems) and cls.itemExists("Bazuka", cls.myItems)):
                 state = State.defensive
             else:
                 state = State.aggressive
@@ -144,6 +147,8 @@ class SecondaryLayer:
 
 class Defensive:
 
+    clockCount = 0
+
     @classmethod
     def selection(cls):
         items = []
@@ -163,14 +168,95 @@ class Defensive:
             shellProbability, blankProbability = PrimaryLayer.probabilities()
             choice, items = Neutral.selection(shellProbability, blankProbability)
         else:
-            choice = "opponent" if PrimaryLayer.bullets[0] else "Self"
+            choice = "Opponent" if PrimaryLayer.bullets[0] else "Self"
         
         return choice, items
     
 
     @classmethod
-    def main(self):
-        ...
+    def tryToSkipShell(cls, steal=False): # Works Perfectly 
+        items = []
+        SignalJammers, playerSignalJammers, FishingRods = PrimaryLayer.itemExists("Signal Jammer", PrimaryLayer.myItems), PrimaryLayer.itemExists("Signal Jammer", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems)
+        bulletCount = len(PrimaryLayer.bullets)
+        for _ in range(SignalJammers):
+            if bulletCount <= 0:
+                return items
+            items.append("Signal Jammer") 
+            PrimaryLayer.reCalculateShells()
+            PrimaryLayer.bullets.pop(0)
+            bulletCount -= 1
+
+        if steal:
+            for _ in range(playerSignalJammers):
+                if FishingRods <= 0 or bulletCount <= 0:
+                    return items
+                items.extend(["Fishing Rod", "Signal Jammer", "Signal Jammer"])
+                PrimaryLayer.reCalculateShells()
+                PrimaryLayer.bullets.pop(0)
+                bulletCount -= 1
+                FishingRods -= 1
+
+        return items
+
+
+    
+    @classmethod
+    def tryToUseClock(cls, steal):
+        items = []
+        Clocks, playerClocks, FishingRods = PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems)
+        bulletCount = len(PrimaryLayer.bullets)
+        for _ in range(Clocks):
+            if bulletCount <= 0:
+                return items
+            items.append("Clock") 
+            bulletCount -= 1
+            
+        if steal:
+            for _ in range(playerClocks):
+                if FishingRods <=0 or bulletCount <=0:
+                    return items
+                items.extend(["Fishing Rod", "Clock", "Clock"])
+                FishingRods -= 1
+                bulletCount -= 1
+
+        return items
+    
+
+    @classmethod
+    def stealStealer(cls): # Works perfectly
+        items = []
+        FishingRods, playerFishingRod = PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.playerItems)
+        
+        for _ in range(FishingRods):
+            if not playerFishingRod or not FishingRods:
+                return items
+            items.extend(["Fishing Rod", "Fishing Rod"])
+        return items
+
+
+
+    @classmethod
+    def main(cls, chain):
+        selection = "Opponent"
+        chain.extend(Neutral.regainHealth())
+        chain.extend(cls.stealStealer())
+        chain.extend(cls.tryToSkipShell(steal=True))
+        chain.extend(cls.tryToUseClock(steal=True))
+        # if PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.playerItems):
+        #     if len(PrimaryLayer.bullets) <= len(PrimaryLayer.itemExists("Signal Jammer", PrimaryLayer.playerItems)):
+        #         chain.extend(cls.tryToSkipShell(steal=True))
+        #     if len(PrimaryLayer.bullets) <= len(PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems)):
+        #         chain.extend(cls.tryToUseClock(steal=True))
+
+
+        if len(PrimaryLayer.bullets) > 0:
+            selection, items = cls.selection()
+            chain.extend(items)
+
+
+        PrimaryLayer.reCalculateShells()
+        PrimaryLayer.bullets.pop(0)
+        return selection
 
 
 class Aggressive:
@@ -180,13 +266,13 @@ class Aggressive:
         if not PrimaryLayer.bullets[0]:
             if Switch:
                 items.append("Switch")
-                choice = "opponent"
+                choice = "Opponent"
             elif playerSwitch and FishingRod:
                 items.extend(["Fishing Rod", "Switch", "Switch"])
-                choice = "opponent"
+                choice = "Opponent"
             choice = "Self"
         else:
-            choice = "opponent"
+            choice = "Opponent"
         return choice
     
     @classmethod
@@ -201,68 +287,89 @@ class Aggressive:
             PrimaryLayer.myItems = PrimaryLayer.useItems(["Fishing Rod", "Bazuka"], PrimaryLayer.myItems)
         return items
     
-
+    # @staticmethod
     @classmethod
-    def endOpponent(cls):
-        items = []
+    def _getAllItems(cls):
         Bazuka, Glasses, FishingRod, Clock, Switch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.myItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.myItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.myItems)
         playerBazuka, playerGlasses, playerClock, playerSwitch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.playerItems)
-        
-        choice = "opponent"
-        if PrimaryLayer.playerhealth >= 2:
-            print("HEY BOI")
-            if Bazuka and Glasses:
-                items.extend(["Bazuka", "Glasses"])
-                choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
-                print("1")
+        return {'Bazuka':int(Bazuka), 'Glasses':int(Glasses), 'FishingRod':int(FishingRod), 'Clock':int(Clock), 'Switch':int(Switch), 'playerBazuka':int(playerBazuka), 'playerGlasses':int(playerGlasses), 'playerClock':int(playerClock), 'playerSwitch':int(playerSwitch)}
+    
+    @classmethod
+    def endOpponent(cls, qtyOfItem):
+        items = []
+        choice = "Opponent"
+        # if PrimaryLayer.playerhealth >= 2:
+        print("HEY BOI")
+        if qtyOfItem['Bazuka'] and qtyOfItem['Glasses']:
+            items.extend(["Bazuka", "Glasses"])
+            choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], qtyOfItem['FishingRod'], qtyOfItem['playerSwitch'], items)
+            print("1")
 
-            elif Bazuka and FishingRod and playerGlasses and not Glasses:
-                items.extend(["Bazuka", "Fishing Rod","Glasses", "Glasses"])
-                fh = FishingRod
-                fh -= 1
-                choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
-                print("2")
+        elif qtyOfItem['Bazuka'] and qtyOfItem['FishingRod'] and qtyOfItem['playerGlasses'] and not qtyOfItem['Glasses']:
+            items.extend(["Bazuka", "Fishing Rod","Glasses", "Glasses"])
+            fh = qtyOfItem['FishingRod']
+            fh -= 1
+            choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], fh, qtyOfItem['playerSwitch'], items)
+            print("2")
 
-                    
-            elif FishingRod and Glasses and playerBazuka and not Bazuka:
-                items.extend(["Glasses", "Fishing Rod","Bazuka", "Bazuka"])
-                fh = FishingRod
-                fh -= 1
-                choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
-                print("3")
-            elif FishingRod>1 and playerBazuka and playerGlasses and not Bazuka and not Glasses:
-                items.extend(["Fishing Rod", "Bazuka", "Bazuka", "Fishing Rod", "Glasses", "Glasses"])
-                FishingRod -= 1
-                choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
-                print("4")
-            elif Glasses and Clock:
-                items.extend(["Clock", "Glasses"])
-                if Glasses:
-                    choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
-                print("5")
-            elif Clock:
-                items.append("Clock")
-                if Glasses:
-                    choice = cls.switchShell(Glasses, Switch, FishingRod, playerSwitch, items)
-                print("6")
-            elif FishingRod and playerClock:
-                items.extend(["Fishing Rod","Clock", "Clock"])
-                fh = FishingRod
-                fh -= 1
-                if Glasses:
-                    choice = cls.switchShell(Glasses, Switch, fh, playerSwitch, items)
-                print("7")
+                
+        elif qtyOfItem['FishingRod'] and qtyOfItem['Glasses'] and qtyOfItem['playerBazuka'] and not qtyOfItem['Bazuka']:
+            items.extend(["Glasses", "Fishing Rod","Bazuka", "Bazuka"])
+            fh = qtyOfItem['FishingRod']
+            fh -= 1
+            choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], fh, qtyOfItem['playerSwitch'], items)
+            print("3")
+
+        elif qtyOfItem['FishingRod']>1 and qtyOfItem['playerBazuka'] and qtyOfItem['playerGlasses'] and not qtyOfItem['Bazuka'] and not qtyOfItem['Glasses']:
+            items.extend(["Fishing Rod", "Bazuka", "Bazuka", "Fishing Rod", "Glasses", "Glasses"])
+            qtyOfItem['FishingRod'] -= 1
+            choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], qtyOfItem['FishingRod'], qtyOfItem['playerSwitch'], items)
+            print("4")
+        elif qtyOfItem['Glasses'] and qtyOfItem['Clock']:
+            items.extend(["Clock", "Glasses"])
+            if qtyOfItem['Glasses']:
+                choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], qtyOfItem['FishingRod'], qtyOfItem['playerSwitch'], items)
+            print("5")
+        elif qtyOfItem['Clock']:
+            items.append("Clock")
+            if qtyOfItem['Glasses']:
+                choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], qtyOfItem['FishingRod'], qtyOfItem['playerSwitch'], items)
+            print("6")
+        elif qtyOfItem['FishingRod'] and qtyOfItem['playerClock']:
+            items.extend(["Fishing Rod","Clock", "Clock"])
+            fh = qtyOfItem['FishingRod']
+            fh -= 1
+            if qtyOfItem['Glasses']:
+                choice = cls.switchShell(qtyOfItem['Glasses'], qtyOfItem['Switch'], fh, qtyOfItem['playerSwitch'], items)
+            print("7")
 
 
             return choice, items
                 
+
+    @classmethod
+    def attack(cls):
+        items = []
+        clocks = Defensive.tryToUseClock(steal=True)
+        switches = Defensive.tryToSkipShell(steal=True)
+        FishingRods = Defensive.stealStealer()
+        items.extend([clocks, switches, FishingRods])
+        return items
             
     @classmethod
     def main(cls, chain):
-        print("Agrressive")
-        choice, items = cls.endOpponent()
-        chain.extend(items)
-        return choice
+        chain.extend(Neutral.regainHealth())
+        if PrimaryLayer.playerhealth <= 2:
+            selection, items = cls.endOpponent(cls._getAllItems())
+            chain.extend(items)
+        else:
+            chain.extend(cls.attack())
+            shellProbability, blankProbability = PrimaryLayer.probabilities()
+            selection = "Self" if shellProbability < blankProbability else "Opponent"
+
+        PrimaryLayer.reCalculateShells()
+        PrimaryLayer.bullets.pop(0)
+        return selection
 
 
 class Neutral:

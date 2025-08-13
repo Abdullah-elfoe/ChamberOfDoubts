@@ -58,6 +58,7 @@ class Game(Base):
         self.ExtraTurn = False
         self.gameOver = False
         self.clockUsed = False
+        self.clockCount = 0
         # self.configure()    
         
         self.myTurn = None
@@ -93,10 +94,10 @@ class Game(Base):
             self.template.myInventory.addToInventory(items)
         
 
-        self.template.opponentInventory.addToInventory('Injection', 2)
-        self.template.opponentInventory.addToInventory('Pill', 2)
+        # self.template.opponentInventory.addToInventory('Injection', 2)
+        # self.template.opponentInventory.addToInventory('Pill', 2)
 
-        self.template.myInventory.addToInventory('Clock', 5)
+        # self.template.myInventory.addToInventory('Clock', 5)
 
 
 
@@ -225,6 +226,7 @@ class Game(Base):
                 self.hit = 1
                 self.template.PlayerSelectionPanel.permission = True
                 PrimaryLayer.reCalculateShells()
+                PrimaryLayer.bullets.pop(0)
                 self.bullets.pop(0)
 
             
@@ -253,10 +255,12 @@ class Game(Base):
             for ind, item in enumerate(khapy):
                 self.template.opponentInventory.draw(screen)
                 pygame.display.flip()
-                print(item, ind)
                 if obtainedViaFishingRod:
-                    obtainedViaFishingRod = False
                     self.template.myInventory.useItem(item, discard=True)
+                    self.template.opponentInventory.draw(screen)
+                    pygame.display.flip()
+                    print(item, ind)
+                    obtainedViaFishingRod = False
                     self.BOT.actionChain.pop(0)
 
                     continue
@@ -266,8 +270,9 @@ class Game(Base):
                     obtainedViaFishingRod = True
 
                     self.template.opponentInventory.addToInventory(khapy[ind+1])
-                    self.template.opponentInventory.useItem(item, discard=True if item=="Glasses" else False)
-                    self.template.opponentInventory.draw(screen)
+                    print("here", ind)
+                    # self.template.opponentInventory.useItem(item, discard=True if item=="Glasses" else False)
+                    # self.template.opponentInventory.draw(screen)
 
                 if item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
                     self.template.opponentInventory.useItem(item, discard=True if item=="Glasses" else False)
@@ -411,9 +416,12 @@ class Game(Base):
     
     def switchTurns(self):
         if self.clockUsed:
-            self.clockUsed = False
-            print("USED")
-            return
+            if self.clockCount == 0:
+                self.clockUsed = False
+            else:
+                self.clockCount -= 1
+                print("USED")
+                return
         if self.myTurn:
             self.opponentTurn = True
             self.myTurn = False
@@ -524,10 +532,14 @@ class Game(Base):
             self.BOT.udpateShells(blank, live)
             self.BOT.udpate(self.bullets[:], self.template.opponentHealthBar.current_health, self.template.myHealthBar.current_health, self.template.myInventory.getItems(), self.template.opponentInventory.getItems())
             self.setupBot = True
-            self.template.myHealthBar.hit(3)
-            self.template.myInventory.addToInventory("Bazuka")
-            self.template.myInventory.addToInventory("Glasses")
-            self.template.opponentInventory.addToInventory("Fishing Rod", 2)
+            # self.template.myHealthBar.hit(3)
+            # self.template.myInventory.addToInventory("Bazuka")
+            # self.template.myInventory.addToInventory("Glasses")
+            self.template.myInventory.addToInventory("Clock", 3)
+
+            # self.template.opponentInventory.addToInventory("Clock", 1)
+            self.template.opponentInventory.addToInventory("Fishing Rod", 7)
+
 
 
     def electHost(self):

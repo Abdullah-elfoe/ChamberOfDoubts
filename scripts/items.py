@@ -65,6 +65,7 @@ def fishingRod(obj):
 
 def Clock(obj):
     obj.clockUsed = True
+    obj.clockCount += 1
     if obj.setupMultiplayer:
         obj.updateInventory()
         data = {
