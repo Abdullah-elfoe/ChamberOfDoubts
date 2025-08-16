@@ -72,10 +72,9 @@ class Game(Base):
     def initBullets(self):
         
         self.template.myHealthBar.max_health = self.template.myHealthBar.current_health = game.PHASES[self.currentPhase][2]
-        
         self.template.opponentHealthBar.max_health = self.template.opponentHealthBar.current_health = self.template.myHealthBar.max_health
         array = [choice([True, False]) for _ in range(game.PHASES[self.currentPhase][1])]
-        array = [True for _ in range(game.PHASES[self.currentPhase][1])]
+        # array = [True for _ in range(game.PHASES[self.currentPhase][1])]
 
         return array
 
@@ -83,15 +82,15 @@ class Game(Base):
 
 
     def initItems(self): 
-        for item in ['Pill', 'Signal Jammer']:
+        # for item in ['Pill', 'Signal Jammer']:
 
-        # for item in self.randomizeItems:
+        for item in self.randomizeItems:
             self.template.opponentInventory.addToInventory(item)
 
-        for items in ["Injection", "Pill"]:
-        # for item in self.randomizeItems:
+        # for items in ["Injection", "Pill"]:
+        for item in self.randomizeItems:
         
-            self.template.myInventory.addToInventory(items)
+            self.template.myInventory.addToInventory(item)
         
 
         # self.template.opponentInventory.addToInventory('Injection', 2)
@@ -225,6 +224,7 @@ class Game(Base):
                 self.template.gun.fired = False
                 self.hit = 1
                 self.template.PlayerSelectionPanel.permission = True
+                if (len(self.bullets) <= 0): self.phaseshift = True
                 PrimaryLayer.reCalculateShells()
                 PrimaryLayer.bullets.pop(0)
                 self.bullets.pop(0)
@@ -314,7 +314,10 @@ class Game(Base):
             sleep(1)
         
 
-            
+            if len(self.bullets) <= 0:
+                self.phaseshift = True
+                self.checkForNewPhase()
+                return
             self.bullets.pop(0)
             # print(self.bullets,len(self.bullets), "most post")
 
@@ -535,10 +538,10 @@ class Game(Base):
             # self.template.myHealthBar.hit(3)
             # self.template.myInventory.addToInventory("Bazuka")
             # self.template.myInventory.addToInventory("Glasses")
-            self.template.myInventory.addToInventory("Clock", 3)
+            # self.template.myInventory.addToInventory("Clock", 3)
 
             # self.template.opponentInventory.addToInventory("Clock", 1)
-            self.template.opponentInventory.addToInventory("Fishing Rod", 7)
+            # self.template.opponentInventory.addToInventory("Fishing Rod", 7)
 
 
 

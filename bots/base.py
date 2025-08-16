@@ -288,11 +288,40 @@ class Aggressive:
         return items
     
     # @staticmethod
+    # @classmethod
+    # def _getAllItems(cls):
+    #     Bazuka, Glasses, FishingRod, Clock, Switch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.myItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.myItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.myItems)
+    #     playerBazuka, playerGlasses, playerClock, playerSwitch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.playerItems)
+    #     return {
+    #         'Bazuka':int(Bazuka), 
+    #         'Glasses':int(Glasses),
+    #         'FishingRod':int(FishingRod), 
+    #         'Clock':int(Clock), 
+    #         'Switch':int(Switch), 
+    #         'playerBazuka':int(playerBazuka), 
+    #         'playerGlasses':int(playerGlasses), 
+    #         'playerClock':int(playerClock), 
+    #         'playerSwitch':int(playerSwitch)
+    #         }
     @classmethod
     def _getAllItems(cls):
-        Bazuka, Glasses, FishingRod, Clock, Switch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.myItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.myItems), PrimaryLayer.itemExists("Fishing Rod", PrimaryLayer.myItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.myItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.myItems)
-        playerBazuka, playerGlasses, playerClock, playerSwitch = PrimaryLayer.itemExists("Bazuka", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Glasses", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Clock", PrimaryLayer.playerItems), PrimaryLayer.itemExists("Switch", PrimaryLayer.playerItems)
-        return {'Bazuka':int(Bazuka), 'Glasses':int(Glasses), 'FishingRod':int(FishingRod), 'Clock':int(Clock), 'Switch':int(Switch), 'playerBazuka':int(playerBazuka), 'playerGlasses':int(playerGlasses), 'playerClock':int(playerClock), 'playerSwitch':int(playerSwitch)}
+        item_names = ["Bazuka", "Glasses", "Fishing Rod", "Clock", "Switch"]
+        result = {}
+
+        for item in item_names:
+            my_item = PrimaryLayer.itemExists(item, PrimaryLayer.myItems)
+            player_item = PrimaryLayer.itemExists(item, PrimaryLayer.playerItems)
+
+            if my_item:
+                key = item.replace(" ", "")  # Remove space if any
+                result[key] = my_item
+
+            if player_item:
+                key = "player" + item.replace(" ", "")
+                result[key] = player_item
+
+        return result
+
     
     @classmethod
     def endOpponent(cls, qtyOfItem):
