@@ -74,7 +74,7 @@ class Template(Basic):
         )
 
 
-
+# general.WINDOW_WIDTH//1.7, (general.WINDOW_HEIGHT//1.7)-60)
         self.gun = gunfire.Gun((general.WINDOW_WIDTH//2+70, general.WINDOW_HEIGHT//2))
         self.data = {
             "mod":None,

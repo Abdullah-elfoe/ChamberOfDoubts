@@ -29,12 +29,13 @@ class Template(Basic):
         self.gamemode = LabelManager(self.font, direction='x', spacing=30, shift_amount=20)
         self.bots = LabelManager(self.font, direction='x', spacing=30, shift_amount=20)
         self.gameName = Label("The Chamber Of Doubts", (ui.MARGIN, 300), 60, (155, 255, 155))
-        self.gameDescription = TextWidget((ui.MARGIN, 350, 500, 100), self.font, (255, 255, 255))
+        self.gameDescription = TextWidget((ui.MARGIN, general.WINDOW_HEIGHT-(general.WINDOW_HEIGHT//2), 500, 100), self.font, (255, 255, 255))
         self.gameDescription.text = "The gun's weight tells you nothing only fate decides if the next shell is your last laugh or last breath. Two players, one survivor, the game isn't rigged it's just cruel. Better to leave now"
         self.buttonsPanel = ButtonManager()
         self.playButton = Button(ui.MARGIN, 500, 100, 60, "Play")
+        self.exitButton = Button(400, 500, 100, 60, "Leave", function=lobby_controls["Leave"][0])
         self.buttonsPanel.add_button(self.playButton)
-        self.buttonsPanel.add_button(Button(400, 500, 100, 60, "Leave", function=lobby_controls["Leave"][0]))
+        self.buttonsPanel.add_button(self.exitButton)
         
         self.enableRequirements()
         self.modClicked = "Computer"
@@ -83,7 +84,6 @@ class Template(Basic):
             self.buttonsPanel.permission = True
 
         else:
-            self.bots.permission = False
             self.gamemode.permission = False
             self.bots.permission = False
             self.gameDescription.permission = False

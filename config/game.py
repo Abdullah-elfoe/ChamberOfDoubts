@@ -35,7 +35,7 @@ DESCRIPTION = {
 
 PHASES_COUNT = 3
 PHASES = {
-    1:[2, 12, 5], # Items, bullets, Health
-    2:[3, 2, 7],
-    3:[4, 2, 9]
+    1:[3, 5, 5], # Items, bullets, Health
+    2:[3, 6, 6],
+    3:[6, 7, 7]
 }

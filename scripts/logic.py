@@ -37,7 +37,7 @@ class Base:
         self.go = True
         self.ishost = False
         self.ishostElected = False
-        self.phaseshift = False
+        self.setupCompleted = True
         self.inventoryUpdatedByBot = False
         self.temporaryFunctions = []
 
@@ -85,6 +85,7 @@ class Game(Base):
         # for item in ['Pill', 'Signal Jammer']:
 
         for item in self.randomizeItems:
+            # print(item)
             self.template.opponentInventory.addToInventory(item)
 
         # for items in ["Injection", "Pill"]:
@@ -182,11 +183,22 @@ class Game(Base):
             # bot functionality
 
     def playComputer(self):
-        # self.healthCheck()
-        # self.bulletCheck()
+        
+        if (len(self.bullets) <= 0) and not self.setupCompleted: 
+            self.setupCompleted = True
+            self.shiftPhase()
+
         self.safetyDelay()
         self.initBot()
-        self.checkForNewPhase()
+
+        if self.gameOver or len(self.bullets) == 0:
+            print("here")
+            return
+        # print("Here", randint(0, 408397), self.setupCompleted, len(self.bullets), (len(self.bullets) <= 0) and self.setupCompleted)
+
+        # self.healthCheck()
+        # self.bulletCheck()
+        # self.checkForNewPhase()
 
         if not self.go:
             return
@@ -224,18 +236,17 @@ class Game(Base):
                 self.template.gun.fired = False
                 self.hit = 1
                 self.template.PlayerSelectionPanel.permission = True
-                if (len(self.bullets) <= 0): self.phaseshift = True
                 PrimaryLayer.reCalculateShells()
                 PrimaryLayer.bullets.pop(0)
                 self.bullets.pop(0)
+                if len(self.bullets) <= 0:
+                    self.setupCompleted = False
 
             
-        else:
+        elif self.opponentTurn:
             self.template.gun.fire_permission = False
             self.template.PlayerSelectionPanel.permission = False
             selected = self.template.PlayerSelectionPanel.selected = ""
-            # print(self.bullets,len(self.bullets), "pre")
-            # print(self.template.opponentInventory.getItems(), "\tlogic.py computer inv top ")
             self.BOT.udpate(self.bullets[:], self.template.opponentHealthBar.current_health, self.template.myHealthBar.current_health, self.template.myInventory.getItems(), self.template.opponentInventory.getItems())
             choice = self.BOT.makeMove()
             self.inventoryUpdatedByBot = False
@@ -262,7 +273,6 @@ class Game(Base):
                     print(item, ind)
                     obtainedViaFishingRod = False
                     self.BOT.actionChain.pop(0)
-
                     continue
 
                 # print(item)
@@ -290,8 +300,18 @@ class Game(Base):
 
                 self.BOT.actionChain.pop(0)
                 # self.template.opponentInventory.update(pygame.mouse.get_pos(), pygame.mouse.get_pressed())
-  
 
+
+            
+            # print(self.bullets[0])
+            if len(self.bullets) <= 0:
+                self.setupCompleted = False
+            #     self.shiftPhase()
+                print("bal Bal bach gaya")
+                return
+
+
+            
             if self.bullets[0]:
                 sounds.FIRE.play()
                 self.template.myHealthBar.hit(default=self.hit) if choice.lower() == "opponent" else self.template.opponentHealthBar.hit(default=self.hit)
@@ -314,14 +334,12 @@ class Game(Base):
             sleep(1)
         
 
-            if len(self.bullets) <= 0:
-                self.phaseshift = True
-                self.checkForNewPhase()
-                return
             self.bullets.pop(0)
+            self.hit = 1
+            if len(self.bullets) <= 0:
+                self.setupCompleted = False
             # print(self.bullets,len(self.bullets), "most post")
 
-            self.hit = 1
 
 
         
@@ -329,10 +347,11 @@ class Game(Base):
 
                 
 
-
         ...
 
     def play(self):
+        if self.gameOver:
+            return
         if (self.home.modClicked == "Multiplayer") and self.network.is_connected():
             self.PlayMultiplayer()
         elif self.home.botsClicked is not None:
@@ -583,6 +602,36 @@ class Game(Base):
                 self.network.send_game({"gameOver":True})
                 self.template.myInventory.inventory.clear()
                 self.template.opponentInventory.inventory.clear()
+    def shiftPhase(self):
+        if self.currentPhase < 3:
+            self.currentPhase += 1
+            if (self.home.modClicked == "Multiplayer") and self.network.is_connected():
+                self.setupMultiplayer = False
+                self.network.send_game({"phase":self.currentPhase})
+            elif self.home.botsClicked is not None:
+                self.setupBot = False
+            self.template.popup.display("level "+str(self.currentPhase))
+
+        
+
+        else:
+            self.template.popup.display("Game Over")
+            self.template.myInventory.clear()
+            self.template.opponentInventory.clear()
+            self.bullets = []
+        
+        # Reset health bars
+            self.template.myHealthBar.current_health = self.template.myHealthBar.max_health
+            self.template.opponentHealthBar.current_health = self.template.opponentHealthBar.max_health
+            
+            # Disable controls
+            self.template.gun.fire_permission = False
+            self.template.PlayerSelectionPanel.permission = False
+            self.gameOver = True
+            if (self.home.modClicked == "Multiplayer") and self.network.is_connected():
+                self.network.send_game({"gameOver":True})
+
+
 
     def useItem(self,item):
         self.template.opponentInventory.useItems(item)
@@ -614,6 +663,7 @@ class Game(Base):
         #         break
 
 template = Template(object)
+
 COD = Game(template)
 
 

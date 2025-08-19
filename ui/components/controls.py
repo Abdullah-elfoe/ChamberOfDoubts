@@ -14,7 +14,8 @@ pygame.font.init()
 
 class Button:
     def __init__(self, x, y, width, height, text, base_color=(0, 0, 0), hover_color=(100, 100, 100), function=None, parameters=None):
-        self.base_rect = pygame.Rect(x, y, width, height)
+        self.rect = (x, y, width, height)
+        self.base_rect = pygame.Rect(self.rect)
         self.text = text
         self.base_color = base_color
         self.hover_color = hover_color
@@ -81,7 +82,7 @@ class ButtonManager:
                     function()
 
                     
-    def GrantPermission(self):
+    def togglePermission(self):
         self.permission = True
 
 
@@ -102,6 +103,8 @@ class MiniButton:
 
     def check_hover(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
+        if self.is_hovered:
+            print(self.center)
 
     def detect_click(self, mouse_pos, functions ,mouse_pressed=pygame.mouse.get_pressed()):
         """
@@ -155,23 +158,42 @@ class DiamondPanel:
         half = size / 2
         self.points = [
             (center[0], center[1] - half),  # Top
-            (center[0] + half, center[1]),  # Rightpygame.mixer.init()
+            (center[0] + half, center[1]),  # Right
 
             (center[0], center[1] + half),  # Bottom
             (center[0] - half, center[1])   # Left
         ]
 
         # Create 4 MiniButtons in diamond arrangement
-        btn_size = size * button_size_ratio
-        offset = size * button_offset_ratio
+        self.btn_size = size * button_size_ratio
+        self.offset = size * button_offset_ratio
 
         self.buttons = [
-            MiniButton("Shoot", (center[0], center[1] - offset), btn_size),  # Top
-            MiniButton("Inventory",(center[0] + offset, center[1]), btn_size),  # Right
-            MiniButton("Messages",(center[0], center[1] + offset), btn_size),  # Bottom
-            MiniButton("Inventory",(center[0] - offset, center[1]), btn_size),  # Left
+            MiniButton("Shoot", (center[0], center[1] - self.offset), self.btn_size),  # Top
+            MiniButton("Inventory",(center[0] + self.offset, center[1]), self.btn_size),  # Right
+            MiniButton("Messages",(center[0], center[1] + self.offset), self.btn_size),  # Bottom
+            MiniButton("Inventory",(center[0] - self.offset, center[1]), self.btn_size),  # Left
 
         ]
+
+
+    def resetCenter(self, center):
+        self.points = [
+            (center[0], center[1] - self.size//2),  # Top
+            (center[0] + self.size//2, center[1]),  # Right
+
+            (center[0], center[1] + self.size//2),  # Bottom
+            (center[0] - self.size//2, center[1])   # Left
+        ]
+        self.center = center
+        self.buttons[0].center = (center[0], center[1] - self.offset)
+        self.buttons[0].rect = pygame.Rect(self.buttons[0].center[0] - self.btn_size//2, self.buttons[0].center[1] - self.btn_size//2, self.btn_size, self.btn_size)
+        self.buttons[1].center = (center[0] + self.offset, center[1])
+        self.buttons[1].rect = pygame.Rect(self.buttons[1].center[0] - self.btn_size//2, self.buttons[1].center[1] - self.btn_size//2, self.btn_size, self.btn_size)
+        self.buttons[2].center = (center[0], center[1] + self.offset)
+        self.buttons[2].rect = pygame.Rect(self.buttons[2].center[0] - self.btn_size//2, self.buttons[2].center[1] - self.btn_size//2, self.btn_size, self.btn_size)
+        self.buttons[3].center = (center[0] - self.offset, center[1])
+        self.buttons[3].rect = pygame.Rect(self.buttons[3].center[0] - self.btn_size//2, self.buttons[3].center[1] - self.btn_size//2, self.btn_size, self.btn_size)
 
 
 

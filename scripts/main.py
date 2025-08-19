@@ -14,6 +14,7 @@ from ui.Animations.MatchMaking import MatchmakingDots
 from scripts.Networking import P2PNetwork
 from config import general
 from json import loads
+from config.ui import MARGIN
 from bots.base import PrimaryLayer
 
 
@@ -36,21 +37,54 @@ class Main(Game):
         self.UImanager.showScreenNo(self.homeScreenNo)
 
 
+def managePositionsofWidgets(instance, fullscreen):
+    instance.home.gameDescription.rect.y = general.WINDOW_HEIGHT-(general.WINDOW_HEIGHT//3)
+    instance.home.gameName.pos = (MARGIN, general.WINDOW_HEIGHT-(general.WINDOW_HEIGHT//3)-60)
+    instance.home.playButton.base_rect.y = general.WINDOW_HEIGHT-instance.home.playButton.base_rect.height-MARGIN
+    instance.home.exitButton.base_rect.y = general.WINDOW_HEIGHT-instance.home.playButton.base_rect.height-MARGIN
+    instance.game.opponentHealthBar.pos = (MARGIN, general.WINDOW_HEIGHT-general.HEALTHBAR_HEIGHT-MARGIN)
+    instance.game.myHealthBar.pos = (general.WINDOW_WIDTH-general.HEALTHBAR_WIDTH-MARGIN, general.WINDOW_HEIGHT-general.HEALTHBAR_HEIGHT-MARGIN)
+    instance.game.opponentInventory.resetPosition([general.WINDOW_WIDTH//2-(general.SQUAREINVENTORY_WIDTH//2), "MOYE MOYE MOYE MOYE OYE MOYE"], fullscreen)
+    instance.game.controls.resetCenter((general.WINDOW_WIDTH//2, general.WINDOW_HEIGHT-general.CONTROLPANEL_SIZE//2-MARGIN))
+    ChamberOfDoubts.game.gun.pos = (general.WINDOW_WIDTH//2+70, general.WINDOW_HEIGHT//2)
+  
+    # instance.game.myInventory.y = 
 
 
 
+
+
+
+def toggleFullScreen(fullScreen, instance):
+    global managePositionsofWidgets
+    if fullScreen:
+        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((800, 600))
+         # Update screen size
+    general.WINDOW_WIDTH, general.WINDOW_HEIGHT  = screen.get_size()
+
+    # Rescale background
+    # background = pygame.image.load(instance.UImanager.background).convert()
+    background = pygame.transform.scale(instance.UImanager.background, (general.WINDOW_WIDTH, general.WINDOW_HEIGHT))
+    managePositionsofWidgets(instance, fullScreen)
+    return screen, background
 
 
 
 if __name__=="__main__":
     clock = pygame.time.Clock()
-    screen = pygame.display.set_mode((800, 600))
+    screen = pygame.display.set_mode((general.WINDOW_WIDTH, general.WINDOW_HEIGHT))
     pygame.init()
     pygame.font.init()
     ChamberOfDoubts = Main()
     ChamberOfDoubts.theMainscreen = screen
     running = True
     counter = 0
+    fullScreen = False
+    background = ChamberOfDoubts.UImanager.background
+
+    # screen, background = toggleFullScreen(fullScreen, ChamberOfDoubts)
     
     while running:
         dt = clock.tick(60) / 1000
@@ -113,27 +147,55 @@ if __name__=="__main__":
                 if phase:
                     ChamberOfDoubts.currentPhase = phase
                     ChamberOfDoubts.game.popup.display("Level "+str(phase))
-                if gameOver is True:
-                    ChamberOfDoubts.game.opponentInventory.clear()
-                    ChamberOfDoubts.game.myInventory.clear()
-                    if not ChamberOfDoubts.game.popup.visible:
-                        ChamberOfDoubts.UImanager.showScreenNo(ChamberOfDoubts.homeScreenNo)
+        
+
                 if used:
                     ChamberOfDoubts.game.popup.display(f"{used}")
+        if not ChamberOfDoubts.gameOver:
+            ChamberOfDoubts.play()
+        else:
+            print("HI")
+            if not ChamberOfDoubts.game.popup.visible:
+                print("HI", 2)
+                ChamberOfDoubts.gameOver = False
+                ChamberOfDoubts.home.bots.permission = True
+                ChamberOfDoubts.myTurn = False
+                ChamberOfDoubts.opponentTurn = False
+
+                # ChamberOfDoubts.game.myInventory.addToInventory("Bazuka", 38)
+                ChamberOfDoubts.UImanager.showScreenNo(ChamberOfDoubts.homeScreenNo)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             ChamberOfDoubts.home.handleEvent(event)
             ChamberOfDoubts.game.handleEvent(event)
             if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    del ChamberOfDoubts
+                    from sys import exit as _________________
+                    _________________()
+                    break
+                if event.key == pygame.K_F11:
+                    fullScreen = not fullScreen
+                    screen, background = toggleFullScreen(fullScreen, ChamberOfDoubts)
                 if event.key == pygame.K_SPACE:
                     # print(ChamberOfDoubts.currentPhase)
                     print(ChamberOfDoubts.bullets, len(ChamberOfDoubts.bullets))
                     print(PrimaryLayer.bullets, len(PrimaryLayer.bullets))
                     print(PrimaryLayer.blanks, "blanks", PrimaryLayer.live, "live")
+                    # print(ChamberOfDoubts.game.opponentInventory.getItems())
+                    ChamberOfDoubts.game.opponentInventory.addToInventory("Bazuka", 118)
+                if event.key == pygame.K_LALT:
+                    # ChamberOfDoubts.game.opponentInventory.x += 20
+                    print()
+                    # for _099 in ChamberOfDoubts.game.opponentInventory.inventory:
+                     
+                    # #     _099.rect.x += 20
+                    
+                    #     print(_099.x)
 
 
-          
+                    # print(ChamberOfDoubts.game.opponentInventory.getItems())
 
             
 
@@ -144,7 +206,7 @@ if __name__=="__main__":
         ChamberOfDoubts.home.update(mouse_pos, dt)
         ChamberOfDoubts.game.update(mouse_pos, dt)
         screen.fill((30, 30, 30))
-        screen.blit(ChamberOfDoubts.UImanager.background)
+        screen.blit(background, (0, 0))
         ChamberOfDoubts.home.manage()
         ChamberOfDoubts.game.manage()
         ChamberOfDoubts.home.draw(screen)
@@ -152,7 +214,7 @@ if __name__=="__main__":
         ChamberOfDoubts.loadingScreen.draw(screen)
         ChamberOfDoubts.UImanager.update()
         # ChamberOfDoubts.network.update()
-        ChamberOfDoubts.play()
+        # ChamberOfDoubts.play()
         pygame.display.flip()
 
 

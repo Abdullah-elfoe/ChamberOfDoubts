@@ -184,10 +184,13 @@ class Inventory:
 
 
     def addToInventory(self, name, qty=1):
+        print("1")
         for container in self.inventory:
             if (container.holdingItem is not None) and (container.holdingItem.name == name):
                 container.holdingItem.qty += qty
                 return
+        print("2")
+        # print(self.inventory)
         for container in self.inventory:
             if (container.holdingItem is None):
                 container.holdingItem = Item(name)
@@ -195,7 +198,9 @@ class Inventory:
                 container.holdingItem.function = function_list.get(name, [None])[0]
                 container.holdingItem.parameter = function_list.get(name, [None,None])[1]
                 return
+        print("3")
             
+
                      
 
     def useItem(self, item_name, discard=False):
@@ -252,6 +257,12 @@ class Inventory:
             if container.holdingItem is not None:
                 items.append((container.holdingItem.name, container.holdingItem.qty))
         return items
+    
+
+
+
+    
+    
 
 
 class SqaureInventory(Inventory):
@@ -339,7 +350,30 @@ class SqaureInventory(Inventory):
         for item in self.inventory:
             item.holdingItem = None
 
-        
+    def resetPosition(self, pos, fullscreen):
+        self.x += pos[0]
+        self.shiftContainers(pos[0], fullscreen)
+        ...
+
+    def shiftContainers(self, pixels, fullscreen):
+        x = general.WINDOW_WIDTH//2-(general.SQUAREINVENTORY_WIDTH//2)
+        for ind, container in enumerate(self.inventory):
+            ind += 1
+            if fullscreen:
+                print("Full Screen")
+                container.rect.x  += pixels
+                container.x += pixels
+            else:
+                print( not "Full Screen")
+
+                container.rect.x = x
+                container.x = x
+                x += general.SQUAREINVENTORY_CONTAINER_WIDTH 
+                x += ui.MARGIN
+
+
+                
+                
 
 class CircularInventory(Inventory):
 

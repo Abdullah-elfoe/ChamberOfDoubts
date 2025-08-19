@@ -159,6 +159,15 @@ def Play(obj):
         obj.UImanager.showScreen(obj.gameScreenNo)
     if obj.home.modClicked == "Multiplayer":
         obj.home.connectScreen.visible = True
+    obj.gameOver = False
+    obj.setupMultiplayer = False
+    obj.setupBot = False
+    obj.go = True
+    obj.ishost = False
+    obj.ishostElected = False
+    obj.setupCompleted = True
+    obj.inventoryUpdatedByBot = False
+    obj.currentPhase = 1
 
 
 

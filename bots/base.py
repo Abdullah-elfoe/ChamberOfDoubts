@@ -503,7 +503,8 @@ class Neutral:
         print(PrimaryLayer.bullets, len(PrimaryLayer.bullets), "post Base.py")
         
         PrimaryLayer.reCalculateShells()
-        PrimaryLayer.bullets.pop(0)
+        if len(PrimaryLayer.bullets) > 0:
+            PrimaryLayer.bullets.pop(0)
         return selection
         
 
