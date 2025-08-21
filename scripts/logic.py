@@ -372,6 +372,8 @@ class Game(Base):
         if (len(self.bullets) <= 0) and not self.setupCompleted: 
             self.setupCompleted = True
             self.shiftPhase()
+        if self.gameOver or len(self.bullets) == 0:
+            return 
         # My inventory init
         if not self.setupMultiplayer:
             for item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
@@ -430,6 +432,9 @@ class Game(Base):
                     "myHB":self.template.myHealthBar.current_health,
                     "switched":True
                 })
+            if len(self.bullets) == 0:
+                self.setupCompleted = False
+
 
 
         else:
