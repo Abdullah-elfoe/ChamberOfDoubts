@@ -210,7 +210,7 @@ class Game(Base):
                 self.template.gun.fire_permission = True
             else:
                 if not self.template.PlayerSelectionPanel.permission:
-                    self.template.PlayerSelectionPanel.GrantPermission()
+                    self.template.PlayerSelectionPanel.permission = True
                     self.phaseshift = True
             if self.template.gun.fired:
                 if self.bullets[0]:
@@ -359,7 +359,7 @@ class Game(Base):
 
     def PlayMultiplayer(self):
 
-        self.checkForNewPhase()
+        # self.checkForNewPhase()
         if self.template.popup.visible:
             # if (self.template.popup.timer.pointer == 59) and (self.template.popup.message.lower() == "game over"):
             #     self.UImanager.showScreenNo(self.homeScreenNo)
@@ -369,6 +369,9 @@ class Game(Base):
             self.UImanager.showScreenNo(self.homeScreenNo)
             self.gameOver = True
             return
+        if (len(self.bullets) <= 0) and not self.setupCompleted: 
+            self.setupCompleted = True
+            self.shiftPhase()
         # My inventory init
         if not self.setupMultiplayer:
             for item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
@@ -392,7 +395,7 @@ class Game(Base):
                 self.template.gun.fire_permission = True
             else:
                 if not self.template.PlayerSelectionPanel.permission:
-                    self.template.PlayerSelectionPanel.GrantPermission()
+                    self.template.PlayerSelectionPanel.permission = True
                     self.phaseshift = True
             # print(self.myTurn, self.template.gun.fired)
 
@@ -517,11 +520,11 @@ class Game(Base):
             self.template.myInventory.addToInventory(item)
         for item in self.randomizeItems:
             self.template.opponentInventory.addToInventory(item)
-        self.template.myInventory.addToInventory("Clock")
-        self.template.myInventory.addToInventory("Glasses")
-        self.template.myInventory.addToInventory("Glasses")
-        self.template.myInventory.addToInventory("Switch")
-        self.template.myInventory.addToInventory("Switch")
+        # self.template.myInventory.addToInventory("Clock")
+        # self.template.myInventory.addToInventory("Glasses")
+        # self.template.myInventory.addToInventory("Glasses")
+        # self.template.myInventory.addToInventory("Switch")
+        # self.template.myInventory.addToInventory("Switch")
 
             # sending my inventory to the peer
             # for item in self.template.myInventory.inventory:

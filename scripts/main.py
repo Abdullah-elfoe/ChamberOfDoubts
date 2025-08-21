@@ -178,13 +178,13 @@ if __name__=="__main__":
                 if event.key == pygame.K_F11:
                     fullScreen = not fullScreen
                     screen, background = toggleFullScreen(fullScreen, ChamberOfDoubts)
-                if event.key == pygame.K_SPACE:
+                # if event.key == pygame.K_SPACE:
                     # print(ChamberOfDoubts.currentPhase)
-                    print(ChamberOfDoubts.bullets, len(ChamberOfDoubts.bullets))
-                    print(PrimaryLayer.bullets, len(PrimaryLayer.bullets))
-                    print(PrimaryLayer.blanks, "blanks", PrimaryLayer.live, "live")
-                    # print(ChamberOfDoubts.game.opponentInventory.getItems())
-                    ChamberOfDoubts.game.opponentInventory.addToInventory("Bazuka", 118)
+                    # print(ChamberOfDoubts.bullets, len(ChamberOfDoubts.bullets))
+                    # print(PrimaryLayer.bullets, len(PrimaryLayer.bullets))
+                    # print(PrimaryLayer.blanks, "blanks", PrimaryLayer.live, "live")
+                    # # print(ChamberOfDoubts.game.opponentInventory.getItems())
+                    # ChamberOfDoubts.game.opponentInventory.addToInventory("Bazuka", 118)
                 if event.key == pygame.K_LALT:
                     # ChamberOfDoubts.game.opponentInventory.x += 20
                     print()
