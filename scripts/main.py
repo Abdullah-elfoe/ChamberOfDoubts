@@ -151,16 +151,19 @@ if __name__=="__main__":
 
                 if used:
                     ChamberOfDoubts.game.popup.display(f"{used}")
+                if gameOver:
+                    ChamberOfDoubts.gameOver = True
         if not ChamberOfDoubts.gameOver:
             ChamberOfDoubts.play()
         else:
-            print("HI")
+            # print("HI")
             if not ChamberOfDoubts.game.popup.visible:
-                print("HI", 2)
+                # print("HI", 2)
                 ChamberOfDoubts.gameOver = False
                 ChamberOfDoubts.home.bots.permission = True
                 ChamberOfDoubts.myTurn = False
                 ChamberOfDoubts.opponentTurn = False
+                ChamberOfDoubts.network.send_game({'gameOver':True})
 
                 # ChamberOfDoubts.game.myInventory.addToInventory("Bazuka", 38)
                 ChamberOfDoubts.UImanager.showScreenNo(ChamberOfDoubts.homeScreenNo)
@@ -178,8 +181,10 @@ if __name__=="__main__":
                 if event.key == pygame.K_F11:
                     fullScreen = not fullScreen
                     screen, background = toggleFullScreen(fullScreen, ChamberOfDoubts)
-                # if event.key == pygame.K_SPACE:
-                    # print(ChamberOfDoubts.currentPhase)
+                if event.key == pygame.K_SPACE:
+                    print(ChamberOfDoubts.currentPhase)
+                    print(ChamberOfDoubts.game.PlayerSelectionPanel.permission)
+                    print(ChamberOfDoubts.myTurn, ChamberOfDoubts.opponentTurn)
                     # print(ChamberOfDoubts.bullets, len(ChamberOfDoubts.bullets))
                     # print(PrimaryLayer.bullets, len(PrimaryLayer.bullets))
                     # print(PrimaryLayer.blanks, "blanks", PrimaryLayer.live, "live")

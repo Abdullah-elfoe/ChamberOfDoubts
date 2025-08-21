@@ -103,8 +103,8 @@ class MiniButton:
 
     def check_hover(self, mouse_pos):
         self.is_hovered = self.rect.collidepoint(mouse_pos)
-        if self.is_hovered:
-            print(self.center)
+        # if self.is_hovered:
+        #     print(self.center)
 
     def detect_click(self, mouse_pos, functions ,mouse_pressed=pygame.mouse.get_pressed()):
         """

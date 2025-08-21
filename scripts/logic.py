@@ -361,6 +361,7 @@ class Game(Base):
 
         # self.checkForNewPhase()
         if self.template.popup.visible:
+            self.template.PlayerSelectionPanel.selected = ""
             # if (self.template.popup.timer.pointer == 59) and (self.template.popup.message.lower() == "game over"):
             #     self.UImanager.showScreenNo(self.homeScreenNo)
             return
@@ -372,14 +373,14 @@ class Game(Base):
         if (len(self.bullets) <= 0) and not self.setupCompleted: 
             self.setupCompleted = True
             self.shiftPhase()
-        if self.gameOver or len(self.bullets) == 0:
-            return 
+        
         # My inventory init
         if not self.setupMultiplayer:
             for item in game.INVENTORY_ITEMS+game.SPECIAL_ITEMS:
                 function_list[item][1] = self
             
             if not self.initMultiplayerTurns():
+                self.template.PlayerSelectionPanel.selected = ""
                 return
             
 
@@ -392,7 +393,10 @@ class Game(Base):
             
        
         selected = self.template.PlayerSelectionPanel.selected
+        if self.gameOver or len(self.bullets) == 0:
+            return 
         if self.myTurn:
+            print("my turn", self.template.PlayerSelectionPanel.selected)
             if selected  != "":
                 self.template.gun.fire_permission = True
             else:
@@ -400,7 +404,11 @@ class Game(Base):
                     self.template.PlayerSelectionPanel.permission = True
                     self.phaseshift = True
             # print(self.myTurn, self.template.gun.fired)
-
+            if len(self.bullets) <= 0:
+                self.setupCompleted = False
+                selected = self.template.PlayerSelectionPanel.selected = ""
+                print("Hey")
+                return
             if self.template.gun.fired:
                 if self.bullets[0]:
                     sounds.FIRE.play()
@@ -432,7 +440,9 @@ class Game(Base):
                     "myHB":self.template.myHealthBar.current_health,
                     "switched":True
                 })
-            if len(self.bullets) == 0:
+          
+            if len(self.bullets)==0:
+                self.template.PlayerSelectionPanel.selected = ""
                 self.setupCompleted = False
 
 
@@ -573,6 +583,7 @@ class Game(Base):
 
 
     def electHost(self):
+        print("HELP")
         if self.network.peerIp is None:
             return 
         
