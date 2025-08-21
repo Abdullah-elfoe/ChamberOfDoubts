@@ -339,7 +339,7 @@ class P2PNetwork:
     MSG_ACK = 3
     MSG_HEARTBEAT = 4
     
-    def __init__(self, ip: str="127.0.0.1", port: int=6000, peer_ip: str="127.0.0.1", peer_port: int=5000):
+    def __init__(self, ip: str="192.168.0.108", port: int=5000, peer_ip: str="192.168.0.102", peer_port: int=6000):
         """
         Initialize P2P network for pygame.
         
